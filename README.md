@@ -5,7 +5,7 @@
 **Installation instructions**
   
   <ol>
-  <li>Clone this repository: <b>git clone https://github.com/Blasphemythe3rd/Senior-Project</b> </li>
+  <li>Clone this repository: <b>git clone https://github.com/Blasphemythe3rd/Senior-Project.git</b> </li>
   <li>In the folder djangostarter, create a virtual environment: <b>python -m venv venv</b> </li>
   <li>Activate the virtual environment:  <b>source venv/bin/activate</b></li>
   <li>Install dependencies:  <b>pip install django</b></li>
