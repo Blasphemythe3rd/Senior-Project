@@ -20,7 +20,7 @@ class Test(models.Model):
     responses = models.OneToMany(Stimuli_Response)
     # patient = models.ForeignKey(Patient)
     time_started = models.DateTimeField(auto_now_add = True)
-    time_ended = models.DateTimeField(auto_now_add = True)
+    time_ended = models.DateTimeField()
     status = models.IntegerField(default = 0)  # 0 = not taken
     patient_age = models.IntegerField()
 
@@ -28,7 +28,7 @@ class Notification(models.Model):
     status = models.IntegerField
     message = models.TextField()
     # users = models.ManyToManyField(Doctor)
-    Model.objects.filter(assigned_tests__contains=['doctors_username'])
+    # Model.objects.filter(assigned_tests__contains=['doctors_username'])
 
 class Doctor(User): 	# Implements Django’s User Class
     assigned_tests = models.ArrayField(Test)
