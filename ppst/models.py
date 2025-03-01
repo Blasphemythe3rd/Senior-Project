@@ -20,14 +20,13 @@ class Test(models.Model):
 
 class Given_Stimuli(models.Model):
     given_stimuli = models.TextField()
-    options_stimuli = models.TextField()
     enum_type = models.TextField()
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
 
 class Stimuli_Response(models.Model):
     enum_type = models.TextField()
     response = models.TextField()
-    repsonse_time = models.FloatField()
+    response_time = models.FloatField()
     response_per_click = models.IntegerField()
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
 
