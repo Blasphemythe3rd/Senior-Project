@@ -20,7 +20,7 @@ class Test(models.Model):
 
 class Given_Stimuli(models.Model):
     given_stimuli = models.TextField()
-    enum_type = models.TextField()
+    enum_type = models.TextField() # change to actual enum, or set integer flags
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
 
 class Stimuli_Response(models.Model):
@@ -31,7 +31,7 @@ class Stimuli_Response(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
 
 class Notification(models.Model):
-    status = models.IntegerField
+    status = models.IntegerField(default = 0)
     message = models.TextField()
     users = models.ManyToManyField(Doctor)
     # Model.objects.filter(assigned_tests__contains=['doctors_username'])
