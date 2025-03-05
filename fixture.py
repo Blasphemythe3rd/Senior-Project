@@ -61,33 +61,33 @@ for i in range(10):
     print(f"Created Test {test.test_id} (Age: {patient_age}, Doctor: {doctor.id})")
 #-------------------------------------------------------------------------------------------
 # Stimuli for test t0
-gs0 = Given_Stimuli(given_stimuli="5432", enum_type="4digit_practice", test=t0)
+gs0 = Given_Stimuli(given_id=0,given_stimuli="5432", enum_type="4digit_practice")
 gs0.save()
-gs1 = Given_Stimuli(given_stimuli="6543", enum_type="4digit", test=t0)
+gs1 = Given_Stimuli(given_id=1,given_stimuli="6543", enum_type="4digit")
 gs1.save()
-gs2 = Given_Stimuli(given_stimuli="7654", enum_type="4digit", test=t0)
+gs2 = Given_Stimuli(given_id=2,given_stimuli="7654", enum_type="4digit")
 gs2.save()
-gs3 = Given_Stimuli(given_stimuli="8765", enum_type="4digit", test=t0)
+gs3 = Given_Stimuli(given_id=3,given_stimuli="8765", enum_type="4digit")
 gs3.save()
-gs4 = Given_Stimuli(given_stimuli="65432", enum_type="5digit", test=t0)
+gs4 = Given_Stimuli(given_id=4,given_stimuli="65432", enum_type="5digit")
 gs4.save()
-gs5 = Given_Stimuli(given_stimuli="76543", enum_type="5digit", test=t0)
+gs5 = Given_Stimuli(given_id=5,given_stimuli="76543", enum_type="5digit")
 gs5.save()
-gs6 = Given_Stimuli(given_stimuli="87654", enum_type="5digit", test=t0)
+gs6 = Given_Stimuli(given_id=6,given_stimuli="87654", enum_type="5digit")
 gs6.save()
-gs7 = Given_Stimuli(given_stimuli="32ba", enum_type="4mixed_practice", test=t0)
+gs7 = Given_Stimuli(given_id=7,given_stimuli="32ba", enum_type="4mixed_practice")
 gs7.save()
-gs8 = Given_Stimuli(given_stimuli="43cb", enum_type="4mixed", test=t0)
+gs8 = Given_Stimuli(given_id=8,given_stimuli="43cb", enum_type="4mixed")
 gs8.save()
-gs9 = Given_Stimuli(given_stimuli="54dc", enum_type="4mixed", test=t0)
+gs9 = Given_Stimuli(given_id=9,given_stimuli="54dc", enum_type="4mixed")
 gs9.save()
-gs10 = Given_Stimuli(given_stimuli="65ed", enum_type="4mixed", test=t0)
+gs10 = Given_Stimuli(given_id=10,given_stimuli="65ed", enum_type="4mixed")
 gs10.save()
-gs11 = Given_Stimuli(given_stimuli="765fe", enum_type="5mixed", test=t0)
+gs11 = Given_Stimuli(given_id=11,given_stimuli="765fe", enum_type="5mixed")
 gs11.save()
-gs12 = Given_Stimuli(given_stimuli="8765gf", enum_type="5mixed", test=t0)
+gs12 = Given_Stimuli(given_id=12,given_stimuli="8765gf", enum_type="5mixed")
 gs12.save()
-gs13 = Given_Stimuli(given_stimuli="2dcba", enum_type="5mixed", test=t0)
+gs13 = Given_Stimuli(given_id=13,given_stimuli="2dcba", enum_type="5mixed")
 gs13.save()
 
 # Define the sequence of enum types
@@ -110,25 +110,20 @@ def generate_response(enum_type):
 # Fetch or create tests (assuming there are exactly 10 test objects t0 to t9)
 tests = list(Test.objects.all()[:10])  # Ensure we get exactly 10 test instances
 
-# Ensure we have enough tests
-if len(tests) < 10:
-    raise ValueError("Not enough Test instances in the database! Expected 10.")
-
 # Iterate over each test and assign the stimuli responses
 for test in tests:
     x = 0
     for enum_type in enum_types_sequence:
         response = generate_response(enum_type)
         response_per_click = random.randint(1, 5)
-        gs = list(Given_Stimuli.objects.all()[x])
-        for Given_Stimuli in list(Given_Stimuli.objects.all()) :
-            sr = Stimuli_Response(
-                enum_type=enum_type,
-                response=response,
-                response_per_click=response_per_click,
-                test=test,
-                given = gs
-            )
-            sr.save()
-            print(f"Created {sr} for test {test.test_id}")
+        gs = Given_Stimuli.objects.all()[x]
+        sr = Stimuli_Response(
+            enum_type=enum_type,
+            response=response,
+            response_per_click=response_per_click,
+            test=test,
+            given = gs
+        )
+        sr.save()
+        print(f"Created {sr} for test {test.test_id}")
         x = x + 1

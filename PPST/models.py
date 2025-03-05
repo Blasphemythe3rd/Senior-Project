@@ -26,10 +26,10 @@ class Given_Stimuli(models.Model):
 class Stimuli_Response(models.Model):
     enum_type = models.TextField()
     response = models.TextField()
-    response_time = models.FloatField()
+    #response_time = models.FloatField()
     response_per_click = models.IntegerField()
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
-    given = models.ForeignKey(Given_Stimuli, on_delete=models.CASCADE)
+    given = models.ForeignKey(Given_Stimuli, on_delete=models.CASCADE, null=True, blank=True)
 
 class Notification(models.Model):
     status = models.IntegerField(default = 0)
