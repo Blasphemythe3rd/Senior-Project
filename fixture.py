@@ -71,6 +71,7 @@ except Exception as e:
     print(f"Error: {e}")
 #-------------------------------------------------------------------------------------------
 # Stimuli for test t0
+
 gs0 = Given_Stimuli(given_stimuli="5432", enum_type="4digit_practice")
 gs0.save()
 gs1 = Given_Stimuli(given_stimuli="6543", enum_type="4digit")
@@ -108,7 +109,7 @@ enum_types_sequence = [
     "5mixed", "5mixed", "5mixed"
 ]
 
-# Function to generate responses based on enum type
+# we need to make it so that 4mixed has 2 letters and 2 numbers and 5mixed has 3 letters and 2 numbers
 def generate_response(enum_type):
     if "digit" in enum_type:
         length = 4 if "4digit" in enum_type else 5
@@ -118,10 +119,10 @@ def generate_response(enum_type):
         return "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 # Fetch or create tests (assuming there are exactly 10 test objects t0 to t9)
-tests = list(Test.objects.all()[:10])  # Ensure we get exactly 10 test instances
+tests = list(Test.objects.all())  # Ensure we get exactly 10 test instances
 
 # Iterate over each test and assign the stimuli responses
-stimuli_respone = []
+stimuli_response = []
 for test in tests:
     x = 0
     for enum_type in enum_types_sequence:
