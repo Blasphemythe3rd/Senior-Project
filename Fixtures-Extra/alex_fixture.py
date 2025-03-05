@@ -2,6 +2,10 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from PPST.models import Test, Doctor, Notification, Stimuli_Response, Given_Stimuli
 
+# Delete existing data
+for model in [Doctor, Test, Given_Stimuli, Stimuli_Response, Notification]:
+    model.objects.all().delete()
+
 # Create Doctors
 doctors = [Doctor.objects.create_user(username=f"(A) Doctor {i}") for i in range(10)]
 for doc in doctors:
