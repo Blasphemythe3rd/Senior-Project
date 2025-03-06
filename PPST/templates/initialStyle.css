@@ -96,3 +96,8 @@ body {
 .submit-button:hover {
     background-color: #0056b3;
 }
+
+.clicked {
+    background-color: grey;
+    pointer-events: none;
+}
