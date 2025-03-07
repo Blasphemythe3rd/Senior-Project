@@ -1,7 +1,18 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from .models import Given_Stimuli
+import random
 
-# Create your views here.
-
-def test(request):
-    return HttpResponse("Hello World!")
+# View to render the test page with random stimuli
+def test_page(request):
+    # Fetch all stimuli from the database
+    stimuli_list = list(Given_Stimuli.objects.all())
+    
+    # Choose a random stimulus
+    stimulus = random.choice(stimuli_list) if stimuli_list else None
+    
+    # Pass the stimulus to the template
+    context = {
+        'stimulus': stimulus
+    }
+    
+    return render(request, 'PPST/test_page.html', context)

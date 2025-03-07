@@ -4,5 +4,5 @@ from . import views
 app_name="PPST"
 
 urlpatterns = [
-    path("test/", views.test, name="test"),
+    path("test_page/", views.test_page, name="test_page"),
 ]
