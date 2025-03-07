@@ -21,14 +21,15 @@ class Test(models.Model):
 class Given_Stimuli(models.Model):
     given_stimuli = models.TextField()
     enum_type = models.TextField() # change to actual enum, or set integer flags
-    test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    #test = models.ForeignKey(Test, on_delete=models.CASCADE)
 
 class Stimuli_Response(models.Model):
     enum_type = models.TextField()
     response = models.TextField()
-    response_time = models.FloatField()
+    #response_time = models.FloatField()
     response_per_click = models.IntegerField()
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    given = models.ForeignKey(Given_Stimuli, on_delete=models.CASCADE, null=True, blank=True)
 
 class Notification(models.Model):
     status = models.IntegerField(default = 0)
