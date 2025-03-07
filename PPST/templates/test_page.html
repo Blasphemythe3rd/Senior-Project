@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        /* Add any custom styling here */
+        #stimulus-display {
+            font-size: 40px;
+            text-align: center;
+            margin-top: 20%;
+        }
+    </style>
+</head>
+<body>
+    
+    <script>
+        // Function to display the stimuli for 2 seconds each
+        function showStimuli(stimuli) {
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < stimuli.length) {
+                    stimulusDisplay.innerText = stimuli[index];
+                    index++;
+                } else {
+                    clearInterval(interval);
+                    stimulusDisplay.innerText = '';  // Hide the stimulus after the loop
+                }
+            }, 2000);  // 2 seconds interval
+        }
+
+        // Start showing the stimuli after the page loads
+        window.onload = function() {
+            const stimuli = ["{{ stimulus }}"];  // Here we pass the stimulus from Django context
+            showStimuli(context);
+        }
+    </script>
+</body>
+</html>
