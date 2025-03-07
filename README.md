@@ -1,8 +1,6 @@
 # Senior-Project
 
 <h3>Installation Instructions</h3>
-
-**Installation instructions**
   
   <ol>
   <li>Clone this repository: <b>git clone https://github.com/Blasphemythe3rd/Senior-Project.git</b> </li>
