@@ -1,18 +1,14 @@
+import random
 from django.shortcuts import render
 from .models import Given_Stimuli
-import random
 
-# View to render the test page with random stimuli
-def test_page(request):
-    # Fetch all stimuli from the database
-    stimuli_list = list(Given_Stimuli.objects.all())
+def practiceTest(request):
+    return render(request,'practiceTest.html')
+
+def testScreen(request):
+    stimuli_0 = Given_Stimuli.objects.first()  # Get the first object (you can change this query)
     
-    # Choose a random stimulus
-    stimulus = random.choice(stimuli_list) if stimuli_list else None
-    
-    # Pass the stimulus to the template
-    context = {
-        'stimulus': stimulus
-    }
-    
-    return render(request, 'PPST/test_page.html', context)
+    # If no object exists, provide an empty string or handle it differently
+    given_stimuli_str = stimuli_0.given_stimuli if stimuli_0 else ""
+
+    return render(request, 'testScreen.html', {'given_stimuli_str': given_stimuli_str})
