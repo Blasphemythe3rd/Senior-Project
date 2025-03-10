@@ -39,27 +39,27 @@ try:
         test_id="t1",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
-        status=0,
+        status=1,
         patient_age=55,
-        doctor=doctors[1]
+        doctor=doctors[0]
     )
     t1.save()
     t2 = Test(
         test_id="t2",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
-        status=0,
+        status=2,
         patient_age=65,
-        doctor=doctors[2]
+        doctor=doctors[0]
     )
     t2.save()
     t3 = Test(
         test_id="t3",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
-        status=0,
+        status=2,
         patient_age=75,
-        doctor=doctors[3]
+        doctor=doctors[0]
     )
     t3.save()
     t4 = Test(
@@ -389,8 +389,8 @@ sr13_1.save()
 
 sr0_2 = Stimuli_Response(
     enum_type="4digit_practice", 
-    response="2348",  
-    response_per_click=[2, 2, 2, 2],
+    response="8432",  # fails
+    response_per_click=[1.0, 3.1, 2.7, 0.78],
     test=tests[2], 
     given=gs[0]
 )
@@ -398,8 +398,8 @@ sr0_2.save()
 
 sr1_2 = Stimuli_Response(
     enum_type="4digit", 
-    response="2479",  
-    response_per_click=[2, 2, 2, 2],
+    response="9742",  # fails 
+    response_per_click=[2.2, 4.2, 2.7, 1.2],
     test=tests[2], 
     given=gs[1]
 )
@@ -408,7 +408,7 @@ sr1_2.save()
 sr2_2 = Stimuli_Response(
     enum_type="4digit", 
     response="3567",  
-    response_per_click=[2, 2, 2, 2],
+    response_per_click=[2.3, 2.4, 0.22, 2.22],
     test=tests[2], 
     given=gs[2]
 )
