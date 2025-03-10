@@ -118,93 +118,73 @@ body{
 }
 
 .main__container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    justify-self: center;
+    display: flex; /* Switch from grid to flex */
+    flex-direction: row; /* Align the items horizontally */
+    justify-content: space-between; /* Ensure space between notifications and image */
+    align-items: flex-start; /* Align both vertically at the top */
+    max-width: 1300px;
     margin: 0 auto;
+    padding: 0 50px;
     height: 90vh;
     background-color: #f7f5df;
     z-index: 1;
-    width: 100%;
-    max-width: 1300px;
-    padding: 0 50px;
 }
 
-.main__content h1 {
-    font-size: 4rem;
-    background-color: #542b0d;
-    background-image: linear-gradient(to top, #542b0d, #8d6040);
-    background-size: 100%;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-text-fill-color: transparent;
+.main__content {
+    flex: 1; /* Allow the notifications section to take available space */
+    display: flex;
+    flex-direction: column; /* Stack notifications in a column */
+    justify-content: flex-start; /* Align the notifications to the top */
+    padding-right: 50px; /* Add some space to the right */
 }
 
-.main__content h2{
-    font-size: 4rem;
-    background-color: #072b04;
-    background-image: linear-gradient(to top, #072b04, #3b5c38);
-    background-size: 100%;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-text-fill-color: transparent;
+.main__img--container {
+    flex: 1; /* Allow the image container to take available space */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.main__content p{
+#main__img {
+    height: 80%; /* Keep the image responsive and in the container */
+    width: auto; /* Adjust the width proportionally */
+}
+
+.main__content p {
     margin-top: 1rem;
     font-size: 2rem;
     font-weight: 700;
     color: #141414;
+    padding: 0.5rem 0; /* Add padding for spacing between each notification */
 }
 
-.main__btn {
+.main__content small {
     font-size: 1rem;
-    background-image: linear-gradient(to top, #542b0d, #8d6040);
-    padding: 14px 32px;
-    border: none;
-    border-radius: 4px;
-    margin-top: 2rem;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.35s;
-    outline: none;
+    color: #888;
+    display: block; /* Ensure the timestamp appears below the message */
+    margin-top: 0.5rem;
 }
 
-.main__btn a{
-    position: relative;
-    z-index: 2;
-    color: #f7f5df;
-    text-decoration: none;
-}
+@media screen and (max-width: 768px) {
+    .main__container {
+        flex-direction: column; /* Stack the content vertically on small screens */
+        align-items: center; /* Center everything */
+        height: auto; /* Remove fixed height */
+    }
 
-.main__btn:after {
-    position: absolute;
-    content: '';
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 100%;
-    background:#072b04;
-    transition: all 0.35s;
-    border-radius: 4px;
-}
+    .main__content {
+        padding-right: 0; /* Remove padding */
+        text-align: center; /* Center text */
+    }
 
-.main__btn:hover {
-    color: #fff;
-}
+    .main__img--container {
+        margin-top: 2rem; /* Add spacing between the image and notifications */
+        width: 100%;
+    }
 
-.main__btn:hover:after{
-    width:100%;
-}
-
-.main__img--container{
-    text-align: center;
-}
-
-#main__img{
-    height: 80%;
-    width: 80%;
+    #main__img {
+        width: 100%; /* Make the image responsive */
+        height: auto; /* Adjust height proportionally */
+    }
 }

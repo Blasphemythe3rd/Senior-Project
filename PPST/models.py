@@ -37,5 +37,7 @@ class Notification(models.Model):
     status = models.IntegerField(default = 0)
     message = models.TextField()
     users = models.ManyToManyField(Doctor)
+    timestamp = models.DateTimeField(auto_now_add = True)
+    is_read = models.BooleanField(default = False)
     def __str__(self):
         return f"Notification:{self.message}"
