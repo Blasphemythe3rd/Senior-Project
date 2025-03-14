@@ -1,10 +1,9 @@
 import tempfile
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Doctor, Test, Stimuli_Response, Given_Stimuli
+from .models import Doctor, Test, Stimuli_Response
 import csv
-from django.http import FileResponse, Http404
-import os
+from django.http import FileResponse
 
 # Create your views here.
 
@@ -16,7 +15,7 @@ def testInfo(request):
     percentages = []
     notEmpty = False
 
-    currDoc = Doctor.objects.get(username = "doctor0")
+    currDoc = Doctor.objects.get(username = "doctor0") # will get the doctor that is signed in (waiting for sign in function)
     tests = Test.objects.filter(doctor = currDoc)
 
     for test in tests: # calculate correct response %
@@ -75,7 +74,7 @@ def download_test(request, test_id):
             test_info["Time End"],
             test_info["Status"],
             test_info["Age"],
-            test_info["Accuracy"],
+            test_info["Accuracy %"],
             test_info["Average Response Time"]
         ])
 

@@ -2,6 +2,35 @@ body{
     background-color: #f7f4de;
 }
 
+h1{
+  text-align: center;
+  color: #000000;
+
+  letter-spacing: 3px;
+
+  text-shadow: 0 0 3px #473514, 0 0 5px #ffffff;
+
+  font-size: 40px;
+
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+h2{
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.doctor_name{
+  font-style: italic;
+
+  color: #002c55;
+}
+
 .test-table {
     width: 100%;  /* take up width of screen */
     border-collapse: collapse; 
@@ -41,6 +70,8 @@ body{
     font-size: 1rem;
     padding: 0.5rem 1rem;
     transition: all 0.3s ease;
+
+    text-decoration: none; /* un-underline link */
 }
   
 .download-button:hover {
@@ -49,21 +80,21 @@ body{
 }
 
 html {
-    font-family: "helvetica neue", helvetica, arial, sans-serif;
-  }
+  font-family: "helvetica neue", helvetica, arial, sans-serif;
+}
 
-  th {
-    letter-spacing: 2px;
-  }
-  
-  td {
-    letter-spacing: 1px;
-  }
-  
-  tbody td {
-    text-align: center;
-  }
-  
-  tfoot th {
-    text-align: right;
-  }
+th {
+  letter-spacing: 2px;
+}
+
+td {
+  letter-spacing: 1px;
+}
+
+tbody td {
+  text-align: center;
+}
+
+tfoot th {
+  text-align: right;
+}
