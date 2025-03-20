@@ -59,7 +59,7 @@ def download_test(request, test_id):
             "Time End": test.time_ended,
             "Status": test.status,
             "Age": test.patient_age, 
-            "Accuracy": _calculate_accuracies(test),
+            "Accuracy %": _calculate_accuracies(test),
             "Average Response Time": avg_response
         }
     
@@ -67,7 +67,7 @@ def download_test(request, test_id):
     with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=False) as csvfile:
         writer = csv.writer(csvfile)
         # create top table
-        writer.writerow(["Test ID", "Time Start", "Time End", "Status", "Age", "Accuracy", "Average Response Time"])
+        writer.writerow(["Test ID", "Time Start", "Time End", "Status", "Age", "Accuracy %", "Average Response Time"])
         writer.writerow([
             test_info["Test ID"],
             test_info["Time Start"],
