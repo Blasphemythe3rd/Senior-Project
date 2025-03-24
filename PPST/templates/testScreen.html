@@ -4,99 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sample Page</title>
-    <link rel="stylesheet" href="initialStyle.css">
+    {% load static %}
+    <link rel="stylesheet" href=" {% static 'initialStyle.css' %}">
     <style>
-        .digit-box, .letter-box {
-            display: inline-block;
-            width: 50px;
-            height: 50px;
-            margin: 5px;
-            text-align: center;
-            line-height: 50px;
-            background-color: #f0f0f0;
-            cursor: pointer;
-            border: 2px solid #ccc;
-            font-size: 20px;
-        }
-        
-        .digit-box.clicked, .letter-box.clicked {
-            background-color: #d3ffd3;
-        }
-
-        .container {
-            margin-bottom: 20px;
-        }
-
-        #input-display {
-            margin-top: 20px;
-            font-size: 20px;
-            font-weight: bold;
-            padding: 10px;
-            border: 2px solid #ccc;
-            width: 250px;
-            height: 50px;
-            line-height: 50px;
-            text-align: center;
-        }
-
-        button {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            cursor: pointer;
-            font-size: 16px;
-        }
+    
     </style>
 </head>
 <body>
     <div class="banner">
         <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
     </div>
-
-    <div class="container">
-        <div class="digit-box">2</div>
-        <div class="digit-box">3</div>
-        <div class="digit-box">4</div>
-        <div class="digit-box">5</div>
-    </div>
-    <div class="container">
-        <div class="digit-box">6</div>
-        <div class="digit-box">7</div>
-        <div class="digit-box">8</div>
-        <div class="digit-box">9</div>
-    </div>
-    <div class="container">
-        <div class="letter-box">A</div>
-        <div class="letter-box">F</div>
-        <div class="letter-box">H</div>
-        <div class="letter-box">N</div>
-    </div>
-    <div class="container">
-        <div class="letter-box">Q</div>
-        <div class="letter-box">R</div>
-        <div class="letter-box">X</div>
-        <div class="letter-box">Y</div>
-    </div>
-
-    <!-- Input box to display the current selection -->
-    <div id="input-display">Selected: </div>
+        <div class="box" id="input-display"></div>
+        <div class="container">
+            <div class="digit-box">2</div>
+            <div class="digit-box">3</div>
+            <div class="digit-box">4</div>
+            <div class="digit-box">5</div>
+        </div>
+        <div class="container">
+            <div class="digit-box">6</div>
+            <div class="digit-box">7</div>
+            <div class="digit-box">8</div>
+            <div class="digit-box">9</div>
+        </div>
+        <div class="container">
+            <div class="letter-box">A</div>
+            <div class="letter-box">F</div>
+            <div class="letter-box">H</div>
+            <div class="letter-box">N</div>
+        </div>
+        <div class="container">
+            <div class="letter-box">Q</div>
+            <div class="letter-box">R</div>
+            <div class="letter-box">X</div>
+            <div class="letter-box">Y</div>
+        </div>
+        
     
     <!-- Clear button -->
     <button onclick="clearDisplay()">Clear</button>
 
     <script>
         // Get the given_stimuli string dynamically from the Django context
-        const givenStimuli = "{{ given_stimuli_str }}";  // This is where Django passes the value
+        const givenStimuli = "{{ stimuli_list }}";  // This is where Django passes the value
+
+        console.log("Stimuli List:", givenStimuli);
 
         document.addEventListener('DOMContentLoaded', function() {
-            let currentIndex = 0;  // Keeps track of the current index of given_stimuli.
+            let currentIndex = 7;  // Keeps track of the current index of given_stimuli.
             const inputDisplay = document.getElementById('input-display');
             
             // Function to display the next character in the stimuli
             function showNextStimulus() {
                 if (currentIndex < givenStimuli.length + 1) {
+                    
                     inputDisplay.textContent = givenStimuli[currentIndex];
-                    currentIndex++;
+                    currentIndex+=1;
                     if (currentIndex == givenStimuli.length + 1){
                         inputDisplay.textContent = " ";
                     }
@@ -118,8 +81,26 @@
 
         function clearDisplay() {
             document.getElementById('input-display').textContent = "Selected: "; // Clear the display
-            // You could also reset currentIndex here if you want to restart the sequence.
+            
         }
     </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const boxes = document.querySelectorAll('.digit-box, .letter-box');
+        boxes.forEach(box => {
+            box.addEventListener('click', function() {
+                if (!this.classList.contains('clicked')) {
+                    this.classList.add('clicked');
+                    
+                    setTimeout(() => {
+                        this.classList.remove('clicked');
+                    }, 100);  // Wait for 1 second
+                }
+            });
+        });
+    });
+</script>
+
 </body>
 </html>
