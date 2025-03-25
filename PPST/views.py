@@ -1,14 +1,30 @@
 import tempfile
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import Doctor, Test, Stimuli_Response
 import csv
 from django.http import FileResponse
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
 def test(request):
     return HttpResponse("Hello World!")
+
+def doctor_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('PPST:doctor_login')
+        else:
+            # Invalid login
+            return render(request, 'doctorLoginInitial.html', {'error': 'Invalid username or password'})
+    else:
+        return render(request, 'doctorLoginInitial.html')
 
 def testInfo(request):
     QUESTIONS_PER_TEST = 14
