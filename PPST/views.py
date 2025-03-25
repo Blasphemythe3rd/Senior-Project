@@ -7,17 +7,12 @@ from django.conf import settings
 from django.http import FileResponse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+import logging
 import json
 import csv
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.http import require_GET, require_POST
-from django.views.decorators.csrf import csrf_exempt
-from PPST.models import Doctor, Test, Stimuli_Response
-import json
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
-import logging
+import tempfile
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
