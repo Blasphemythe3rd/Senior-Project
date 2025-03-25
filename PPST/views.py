@@ -2,7 +2,6 @@ import random
 from django.shortcuts import render
 from .models import Given_Stimuli
 
-
 def practiceTest(request):
     return render(request,'practiceTest.html')
 
