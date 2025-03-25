@@ -35,42 +35,73 @@ try:
     )
     t0.save()
 
+    # changed these tests to be under doctors[0] for testing webpages
+    
     t1 = Test(
         test_id="t1",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
-        status=0,
+        status=1,
         patient_age=55,
-        doctor=doctors[1]
+        doctor=doctors[0]
     )
     t1.save()
     t2 = Test(
         test_id="t2",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
-        status=0,
+        status=2,
         patient_age=65,
-        doctor=doctors[2]
+        doctor=doctors[0]
     )
     t2.save()
     t3 = Test(
         test_id="t3",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
+        status=2,
+        patient_age=75,
+        doctor=doctors[0]
+    )
+    t3.save()
+
+    t4 = Test( # same as test 1
+        test_id="t4",
+        time_started=now(),
+        time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
+        status=0,
+        patient_age=55,
+        doctor=doctors[1]
+    )
+    t4.save()
+    t5 = Test(
+        test_id="t5",
+        time_started=now(),
+        time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
+        status=0,
+        patient_age=65,
+        doctor=doctors[2]
+    )
+    t5.save()
+    t6 = Test(
+        test_id="t6",
+        time_started=now(),
+        time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
         status=0,
         patient_age=75,
         doctor=doctors[3]
     )
-    t3.save()
-    t4 = Test(
-        test_id="t4",
+    t6.save()
+    
+    t7 = Test(
+        test_id="t7",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
         status=0,
         patient_age=85,
         doctor=doctors[4]
     )
-    t4.save()
+    t7.save()
 except Exception as e:
     print(f"Error: {e}")
 #Given Stimuli creation-------------------------------------------------------------------------
@@ -389,8 +420,8 @@ sr13_1.save()
 
 sr0_2 = Stimuli_Response(
     enum_type="4digit_practice", 
-    response="2348",  
-    response_per_click=[2, 2, 2, 2],
+    response="8432",  # fails
+    response_per_click=[1.0, 3.1, 2.7, 0.78],
     test=tests[2], 
     given=gs[0]
 )
@@ -398,8 +429,8 @@ sr0_2.save()
 
 sr1_2 = Stimuli_Response(
     enum_type="4digit", 
-    response="2479",  
-    response_per_click=[2, 2, 2, 2],
+    response="9742",  # fails 
+    response_per_click=[2.2, 4.2, 2.7, 1.2],
     test=tests[2], 
     given=gs[1]
 )
@@ -408,7 +439,7 @@ sr1_2.save()
 sr2_2 = Stimuli_Response(
     enum_type="4digit", 
     response="3567",  
-    response_per_click=[2, 2, 2, 2],
+    response_per_click=[2.3, 2.4, 0.22, 2.22],
     test=tests[2], 
     given=gs[2]
 )
@@ -764,6 +795,385 @@ sr13_4 = Stimuli_Response(
     given=gs[13]
 )
 sr13_4.save()
+
+# added tests
+sr0_5 = Stimuli_Response(
+    enum_type="4digit_practice", 
+    response="2348",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[0]
+)
+sr0_5.save()
+
+sr1_5 = Stimuli_Response(
+    enum_type="4digit", 
+    response="2479",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[1]
+)
+sr1_5.save()
+
+sr2_5 = Stimuli_Response(
+    enum_type="4digit", 
+    response="3567",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[2]
+)
+sr2_5.save()
+
+sr3_5 = Stimuli_Response(
+    enum_type="4digit", 
+    response="2568",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[3]
+)
+sr3_5.save()
+
+sr4_5 = Stimuli_Response(
+    enum_type="5digit", 
+    response="24678",  
+    response_per_click=[1, 1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[4]
+)
+sr4_5.save()
+
+sr5_5 = Stimuli_Response(
+    enum_type="5digit", 
+    response="23568",  
+    response_per_click=[1, 1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[5]
+)
+sr5_5.save()
+
+sr6_5 = Stimuli_Response(
+    enum_type="5digit", 
+    response="14567",  
+    response_per_click=[1, 1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[6]
+)
+sr6_5.save()
+
+sr7_5 = Stimuli_Response(
+    enum_type="4mixed_practice", 
+    response="23AF",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[7]
+)
+sr7_5.save()
+
+sr8_5 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="45NQ",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[8]
+)
+sr8_5.save()
+
+sr9_5 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="78HX",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[9]
+)
+sr9_5.save()
+
+sr10_5 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="26RY",  
+    response_per_click=[1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[10]
+)
+sr10_5.save()
+
+sr11_5 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="34AFQ",  
+    response_per_click=[1, 1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[11]
+)
+sr11_5.save()
+
+sr12_5 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="26HNR",  
+    response_per_click=[1, 1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[12]
+)
+sr12_5.save()
+
+sr13_5 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="58NQR",  
+    response_per_click=[1, 1, 1, 1, 1],
+    test=tests[5], 
+    given=gs[13]
+)
+sr13_5.save()
+
+sr0_6 = Stimuli_Response(
+    enum_type="4digit_practice", 
+    response="8432",  # fails
+    response_per_click=[1.0, 3.1, 2.7, 0.78],
+    test=tests[6], 
+    given=gs[0]
+)
+sr0_6.save()
+
+sr1_6 = Stimuli_Response(
+    enum_type="4digit", 
+    response="9742",  # fails 
+    response_per_click=[2.2, 4.2, 2.7, 1.2],
+    test=tests[6], 
+    given=gs[1]
+)
+sr1_6.save()
+
+sr2_6 = Stimuli_Response(
+    enum_type="4digit", 
+    response="3567",  
+    response_per_click=[2.3, 2.4, 0.22, 2.22],
+    test=tests[6], 
+    given=gs[2]
+)
+sr2_6.save()
+
+sr3_6 = Stimuli_Response(
+    enum_type="4digit", 
+    response="2568",  
+    response_per_click=[2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[3]
+)
+sr3_6.save()
+
+sr4_6 = Stimuli_Response(
+    enum_type="5digit", 
+    response="24678",  
+    response_per_click=[2, 2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[4]
+)
+sr4_6.save()
+
+sr5_6 = Stimuli_Response(
+    enum_type="5digit", 
+    response="23568",  
+    response_per_click=[2, 2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[5]
+)
+sr5_6.save()
+
+sr6_6 = Stimuli_Response(
+    enum_type="5digit", 
+    response="14567",  
+    response_per_click=[2, 2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[6]
+)
+sr6_6.save()
+
+sr7_6 = Stimuli_Response(
+    enum_type="4mixed_practice", 
+    response="23AF",  
+    response_per_click=[2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[7]
+)
+sr7_6.save()
+
+sr8_6 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="45NQ",  
+    response_per_click=[2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[8]
+)
+sr8_6.save()
+
+sr9_6 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="78HX",  
+    response_per_click=[2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[9]
+)
+sr9_6.save()
+
+sr10_6 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="26RY",  
+    response_per_click=[2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[10]
+)
+sr10_6.save()
+
+sr11_6 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="34AFQ",  
+    response_per_click=[2, 2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[11]
+)
+sr11_6.save()
+
+sr12_6 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="26HNR",  
+    response_per_click=[2, 2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[12]
+)
+sr12_6.save()
+
+sr13_6 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="58NQR",  
+    response_per_click=[2, 2, 2, 2, 2],
+    test=tests[6], 
+    given=gs[13]
+)
+sr13_6.save()
+
+sr0_7 = Stimuli_Response(
+    enum_type="4digit_practice", 
+    response="2348",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[0]
+)
+sr0_7.save()
+
+sr1_7 = Stimuli_Response(
+    enum_type="4digit", 
+    response="2479",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[1]
+)
+sr1_7.save()
+
+sr2_7 = Stimuli_Response(
+    enum_type="4digit", 
+    response="3567",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[2]
+)
+sr2_7.save()
+
+sr3_7 = Stimuli_Response(
+    enum_type="4digit", 
+    response="2568",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[3]
+)
+sr3_7.save()
+
+sr4_7 = Stimuli_Response(
+    enum_type="5digit", 
+    response="24678",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[4]
+)
+sr4_7.save()
+
+sr5_7 = Stimuli_Response(
+    enum_type="5digit", 
+    response="23568",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[5]
+)
+sr5_7.save()
+
+sr6_7 = Stimuli_Response(
+    enum_type="5digit", 
+    response="14567",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[6]
+)
+sr6_7.save()
+
+sr7_7 = Stimuli_Response(
+    enum_type="4mixed_practice", 
+    response="23AF",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[7]
+)
+sr7_7.save()
+
+sr8_7 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="45NQ",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[8]
+)
+sr8_7.save()
+
+sr9_7 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="78HX",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[9]
+)
+sr9_7.save()
+
+sr10_7 = Stimuli_Response(
+    enum_type="4mixed", 
+    response="26RY",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[10]
+)
+sr10_7.save()
+
+sr11_7 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="34AFQ",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[11]
+)
+sr11_7.save()
+
+sr12_7 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="26HNR",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[12]
+)
+sr12_7.save()
+
+sr13_7 = Stimuli_Response(
+    enum_type="5mixed", 
+    response="58NQR",  
+    response_per_click=[2.5, 2.5, 2.5, 2.5, 2.5],
+    test=tests[7], 
+    given=gs[13]
+)
+sr13_7.save()
 
 n0 = Notification(status=0,message='Patient has completed their test!')
 n0.save()
