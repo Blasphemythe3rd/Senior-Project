@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Page</title>
+    <link rel="stylesheet" href="initialStyle.css">
+    <style>
+        .digit-box, .letter-box {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            text-align: center;
+            line-height: 50px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border: 2px solid #ccc;
+            font-size: 20px;
+        }
+        
+        .digit-box.clicked, .letter-box.clicked {
+            background-color: #d3ffd3;
+        }
+
+        .container {
+            margin-bottom: 20px;
+        }
+
+        #input-display {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            border: 2px solid #ccc;
+            width: 250px;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
+    </div>
+
+    <div class="container">
+        <div class="digit-box">2</div>
+        <div class="digit-box">3</div>
+        <div class="digit-box">4</div>
+        <div class="digit-box">5</div>
+    </div>
+    <div class="container">
+        <div class="digit-box">6</div>
+        <div class="digit-box">7</div>
+        <div class="digit-box">8</div>
+        <div class="digit-box">9</div>
+    </div>
+    <div class="container">
+        <div class="letter-box">A</div>
+        <div class="letter-box">F</div>
+        <div class="letter-box">H</div>
+        <div class="letter-box">N</div>
+    </div>
+    <div class="container">
+        <div class="letter-box">Q</div>
+        <div class="letter-box">R</div>
+        <div class="letter-box">X</div>
+        <div class="letter-box">Y</div>
+    </div>
+
+    <!-- Input box to display the current selection -->
+    <div id="input-display">Selected: </div>
+    
+    <!-- Clear button -->
+    <button onclick="clearDisplay()">Clear</button>
+
+    <script>
+        // Get the given_stimuli string dynamically from the Django context
+        const givenStimuli = "{{ given_stimuli_str }}";  // This is where Django passes the value
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentIndex = 0;  // Keeps track of the current index of given_stimuli.
+            const inputDisplay = document.getElementById('input-display');
+            
+            // Function to display the next character in the stimuli
+            function showNextStimulus() {
+                if (currentIndex < givenStimuli.length + 1) {
+                    inputDisplay.textContent = givenStimuli[currentIndex];
+                    currentIndex++;
+                    if (currentIndex == givenStimuli.length + 1){
+                        inputDisplay.textContent = " ";
+                    }
+                }
+            }
+
+            // Start showing the stimuli one by one
+            showNextStimulus();
+
+            // Trigger the next stimulus display every second (you can adjust the timing)
+            const interval = setInterval(showNextStimulus, 1000);  // 1000ms = 1 second
+
+            // Stop the display when all characters have been shown
+            setTimeout(() => {
+                clearInterval(interval);  // Stop the interval after all stimuli have been displayed
+            }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
+
+        });
+
+        function clearDisplay() {
+            document.getElementById('input-display').textContent = "Selected: "; // Clear the display
+            // You could also reset currentIndex here if you want to restart the sequence.
+        }
+    </script>
+</body>
+</html>
