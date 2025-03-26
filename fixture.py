@@ -35,99 +35,114 @@ try:
     )
     t0.save()
 
+    # changed these tests to be under doctors[0] for testing webpages
+
     t1 = Test(
         test_id="t1",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
-        status=0,
+        status=1,
         patient_age=55,
-        doctor=doctors[1]
+        doctor=doctors[0]
     )
     t1.save()
     t2 = Test(
         test_id="t2",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
-        status=0,
+        status=2,
         patient_age=65,
-        doctor=doctors[2]
+        doctor=doctors[0]
     )
     t2.save()
     t3 = Test(
         test_id="t3",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
+        status=2,
+        patient_age=75,
+        doctor=doctors[0]
+    )
+    t3.save()
+
+    t4 = Test(  # same as test 1
+        test_id="t4",
+        time_started=now(),
+        time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
+        status=0,
+        patient_age=55,
+        doctor=doctors[1]
+    )
+    t4.save()
+    t5 = Test(
+        test_id="t5",
+        time_started=now(),
+        time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
+        status=0,
+        patient_age=65,
+        doctor=doctors[2]
+    )
+    t5.save()
+    t6 = Test(
+        test_id="t6",
+        time_started=now(),
+        time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
         status=0,
         patient_age=75,
         doctor=doctors[3]
     )
-    t3.save()
-    t4 = Test(
-        test_id="t4",
+    t6.save()
+
+    t7 = Test(
+        test_id="t7",
         time_started=now(),
         time_ended=now() + datetime.timedelta(minutes=random.randint(5, 60)),
         status=0,
         patient_age=85,
         doctor=doctors[4]
     )
-    t4.save()
+    t7.save()
 except Exception as e:
     print(f"Error: {e}")
-#Given Stimuli creation-------------------------------------------------------------------------
-# gs0 = Given_Stimuli(given_stimuli="2384", enum_type="4digit_practice")
-# gs0.save()
-# gs1 = Given_Stimuli(given_stimuli="4927", enum_type="4digit")
-# gs1.save()
-# gs2 = Given_Stimuli(given_stimuli="5736", enum_type="4digit")
-# gs2.save()
-# gs3 = Given_Stimuli(given_stimuli="6852", enum_type="4digit")
-# gs3.save()
-# gs4 = Given_Stimuli(given_stimuli="74862", enum_type="5digit")
-# gs4.save()
-# gs5 = Given_Stimuli(given_stimuli="35826", enum_type="5digit")
-# gs5.save()
-# gs6 = Given_Stimuli(given_stimuli="46715", enum_type="5digit")
-# gs6.save()
-# gs7 = Given_Stimuli(given_stimuli="2A3F", enum_type="4mixed_practice")
-# gs7.save()
-# gs8 = Given_Stimuli(given_stimuli="N54Q", enum_type="4mixed")
-# gs8.save()
-# gs9 = Given_Stimuli(given_stimuli="H78X", enum_type="4mixed")
-# gs9.save()
-# gs10 = Given_Stimuli(given_stimuli="R6Y2", enum_type="4mixed")
-# gs10.save()
-# gs11 = Given_Stimuli(given_stimuli="3Q4AF", enum_type="5mixed")
-# gs11.save()
-# gs12 = Given_Stimuli(given_stimuli="2RHN6", enum_type="5mixed")
-# gs12.save()
-# gs13 = Given_Stimuli(given_stimuli="N85QR", enum_type="5mixed")
-# gs13.save()
+#---------------------------------------------------Given Stimuli creation----------------------------------------------
+
 gs0 = Given_Stimuli(given_stimuli="2384", correct_order="2348", enum_type="4digit_practice")
 gs0.save()
-gs1 = Given_Stimuli(given_stimuli="4927", correct_order="2479", enum_type="4digit")
+gs1 = Given_Stimuli(given_stimuli="2A3F", correct_order="23AF", enum_type="4mixed_practice")  
 gs1.save()
+gs2 = Given_Stimuli(given_stimuli="5736", correct_order="3567", enum_type="4digit")
 gs2 = Given_Stimuli(given_stimuli="5736", correct_order="3567", enum_type="4digit")
 gs2.save()
 gs3 = Given_Stimuli(given_stimuli="6852", correct_order="2568", enum_type="4digit")
+gs3 = Given_Stimuli(given_stimuli="6852", correct_order="2568", enum_type="4digit")
 gs3.save()
+gs4 = Given_Stimuli(given_stimuli="74862", correct_order="24678", enum_type="5digit")
 gs4 = Given_Stimuli(given_stimuli="74862", correct_order="24678", enum_type="5digit")
 gs4.save()
 gs5 = Given_Stimuli(given_stimuli="35826", correct_order="23568", enum_type="5digit")
+gs5 = Given_Stimuli(given_stimuli="35826", correct_order="23568", enum_type="5digit")
 gs5.save()
 gs6 = Given_Stimuli(given_stimuli="46715", correct_order="14567", enum_type="5digit")
+gs6 = Given_Stimuli(given_stimuli="46715", correct_order="14567", enum_type="5digit")
 gs6.save()
-gs7 = Given_Stimuli(given_stimuli="2A3F", correct_order="23AF", enum_type="4mixed_practice")
+gs7 = Given_Stimuli(given_stimuli="4927", correct_order="2479", enum_type="4digit")
 gs7.save()
+gs8 = Given_Stimuli(given_stimuli="N54Q", correct_order="45NQ", enum_type="4mixed")
 gs8 = Given_Stimuli(given_stimuli="N54Q", correct_order="45NQ", enum_type="4mixed")
 gs8.save()
 gs9 = Given_Stimuli(given_stimuli="H78X", correct_order="78HX", enum_type="4mixed")
+gs9 = Given_Stimuli(given_stimuli="H78X", correct_order="78HX", enum_type="4mixed")
 gs9.save()
+gs10 = Given_Stimuli(given_stimuli="R6Y2", correct_order="26RY", enum_type="4mixed")
 gs10 = Given_Stimuli(given_stimuli="R6Y2", correct_order="26RY", enum_type="4mixed")
 gs10.save()
 gs11 = Given_Stimuli(given_stimuli="3Q4AF", correct_order="34AFQ", enum_type="5mixed")
+gs11 = Given_Stimuli(given_stimuli="3Q4AF", correct_order="34AFQ", enum_type="5mixed")
 gs11.save()
 gs12 = Given_Stimuli(given_stimuli="2RHN6", correct_order="26HNR", enum_type="5mixed")
+gs12 = Given_Stimuli(given_stimuli="2RHN6", correct_order="26HNR", enum_type="5mixed")
 gs12.save()
+gs13 = Given_Stimuli(given_stimuli="N85QR", correct_order="58NQR", enum_type="5mixed")
 gs13 = Given_Stimuli(given_stimuli="N85QR", correct_order="58NQR", enum_type="5mixed")
 gs13.save()
 

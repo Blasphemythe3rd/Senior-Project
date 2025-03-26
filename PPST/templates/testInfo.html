@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Patient Information</title>
+        <script src="https://unpkg.com/htmx.org"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'testInfoStyle.css' %}">
+    </head>
+<h1>
+    Patient Information
+</h1>
+
+
+<h2>
+    Currently Signed in as: <span class="doctor_name">{{ doctor }}</span>
+</h2>
+
+<body>
+    <div>
+        {% if notEmpty %}
+            <h2>Your Assigned Tests:</h2>
+
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Time Started</th>
+                        <th>Time Ended</th>
+                        <th>Status</th>
+                        <th>Patient Age</th>
+                        <th>Correct Percentage</th>
+                        <th>Full Report</tr>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test, percentage in tests %}
+                    <tr>
+                        <td>{{ test.test_id }}</td>
+                        <td>{{ test.time_started }}</td>
+                        <td>{{ test.time_ended }}</td>
+                        {% if test.status == 0 %}
+                            <td>Not Started</td>
+                        {% elif test.status == 1 %}
+                            <td>In Progress</td>
+                        {% else %}
+                            <td>Complete</td>
+                        {% endif %}
+                        <td>{{ test.patient_age }}</td>
+                        {% if test.status == 0 or test.status == 1 %}
+                            <td>Unavailable</td>
+                        {% else %}
+                            <td> {{ percentage }}% </td>
+                        {% endif %}
+                        {% if test.status == 0 or test.status == 1 %}
+                            <td>Results Unavailable</td>
+                        {% else %}
+                            <td>
+                                <a href="{% url 'PPST:download_test' test.test_id %}" class="download-button">Download</a> <!-- download link, stylized like button-->
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            You have no tests assigned
+        {% endif %}
+    </div>
+    
+</body>
+
+</html>
