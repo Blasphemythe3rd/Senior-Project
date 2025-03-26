@@ -97,7 +97,7 @@ def average_statistics(request):
                 accuracy_data[key] = 0  # If no data, default to 0%
 
     # Convert data to JSON for the frontend
-    return render(request, 'DoctorsNavigations/average_statistics.html', {
+    return render(request, 'average_statistics.html', {
         'labels': json.dumps(list(age_data.keys())),
         'values': json.dumps(list(age_data.values())),
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
@@ -359,3 +359,7 @@ def add_doctor(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+def doctorHomepage(request):
+    return render(request, 'doctorHomePage.html')

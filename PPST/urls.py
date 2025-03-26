@@ -6,7 +6,7 @@ app_name = "PPST"
 urlpatterns = [
     path("test/", views.test, name="test"),
     path("doctor", views.doctor, name="doctor"),
-    path("average_statistics/", views.average_statistics, name="average_statistics")
+    path("average_statistics/", views.average_statistics, name="average_statistics"),
     path("createtest/", views.createTest, name="createTest"), 
     path("ppstcreate/", views.ppstCreate, name="ppstCreate"),
     path("test/<str:testId>", views.test, name="test"),
@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/doctor_tests/<int:doctor_id>/', views.doctor_tests, name='doctor_tests'),
     path('admin/test_details/<int:test_id>/', views.fetch_test_details, name='fetch_test_details'),
     path('admin/login/', views.admin_login, name='admin_login'),
+    path('doctorHomePage/', views.doctorHomepage, name='doctorHomePage'),
 ]
