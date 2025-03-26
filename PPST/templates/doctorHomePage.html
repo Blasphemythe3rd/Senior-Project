@@ -12,7 +12,7 @@
 <nav class="navbar" id = "DrNavbar">
     <div class="navbar_container">
         
-        <img src="/PPST/templates/Images/DRBabyWario.jpg" alt="logoPic" id="navbar_logo">
+        <img src="{% static 'Images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
         
         <div class = "navbar_toggle" id = "mobile-menu">
             <span class="bar"></span>
@@ -48,10 +48,10 @@
         <div class="main__content">
             <h1>Notifications</h1>
             <p>Messages YIPPIE</p>
-            <button class="main__btn"><a href="/DoctorsNavigations/petersucksbutt.html">Open</a></button>
+            <button class="main__btn"><a href="/PPST/doctorHomepage">Open</a></button>
         </div>
         <div class="main__img--container">
-            <img src="Images/Goomba.webp" alt="pic" id="main__img">
+            <img src="{% static 'Images/Goomba.webp' %}" alt="pic" id="main__img">
         </div>
     </div>
 </div>
