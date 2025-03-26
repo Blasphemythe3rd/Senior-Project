@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,9 +6,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Age Distribution</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{% static 'doctorHomePage.css' %}">
 </head>
 <body>
-
+    <nav class="navbar" id = "DrNavbar">
+        <div class="navbar_container">
+            
+            <img src="/PPST/templates/Images/DRBabyWario.jpg" alt="logoPic" id="navbar_logo">
+            
+            <div class = "navbar_toggle" id = "mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <ul class="navbar_menu">
+                <li class="navbar_item">
+                    <a href="/PPST/testInfo" class ="navbar_links">
+                        Patient Logs
+                    </a>
+                </li>
+                <li class="navbar_item">
+                    <a href="/PPST/average_statistics" class ="navbar_links">
+                        Average Statistics
+                    </a>
+                </li>
+                <li class="navbar_item">
+                    <a href="/PPST/ppstcreate" class ="navbar_links">
+                        Test Creation
+                    </a>
+                </li>
+                <li class= "navbar_btn">
+    
+                </li>
+            </ul>
+        </div>
+    </nav>
     <h2>Test Age Distribution</h2>
     <canvas id="ageChart" width="400" height="200"></canvas>
 

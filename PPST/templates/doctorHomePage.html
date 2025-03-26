@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="doctorHomePage.css">
+        <link rel="stylesheet" href="{% static 'doctorHomePage.css' %}">
     </head>
 
 
@@ -11,7 +12,7 @@
 <nav class="navbar" id = "DrNavbar">
     <div class="navbar_container">
         
-        <img src="/Images/DRBabyWario.jpg" alt="logoPic" id="navbar_logo">
+        <img src="/PPST/templates/Images/DRBabyWario.jpg" alt="logoPic" id="navbar_logo">
         
         <div class = "navbar_toggle" id = "mobile-menu">
             <span class="bar"></span>
@@ -20,17 +21,17 @@
         </div>
         <ul class="navbar_menu">
             <li class="navbar_item">
-                <a href="/patientsLogs.html" class ="navbar_links">
+                <a href="/PPST/testInfo" class ="navbar_links">
                     Patient Logs
                 </a>
             </li>
             <li class="navbar_item">
-                <a href="/average_statistics.html" class ="navbar_links">
+                <a href="/PPST/average_statistics" class ="navbar_links">
                     Average Statistics
                 </a>
             </li>
             <li class="navbar_item">
-                <a href="/createTest.html" class ="navbar_links">
+                <a href="/PPST/ppstcreate" class ="navbar_links">
                     Test Creation
                 </a>
             </li>
@@ -47,7 +48,7 @@
         <div class="main__content">
             <h1>Notifications</h1>
             <p>Messages YIPPIE</p>
-            <button class="main__btn"><a href="#">Open</a></button>
+            <button class="main__btn"><a href="/DoctorsNavigations/petersucksbutt.html">Open</a></button>
         </div>
         <div class="main__img--container">
             <img src="Images/Goomba.webp" alt="pic" id="main__img">
