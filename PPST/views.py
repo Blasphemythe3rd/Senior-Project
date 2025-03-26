@@ -79,7 +79,7 @@ def doctor_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('PPST:doctorHomepage')
+            return redirect('PPST:doctorHomePage')
         else:
             # Invalid login
             return render(request, 'doctorLoginInitial.html', {'error': 'Invalid username or password'})
@@ -292,7 +292,7 @@ def add_doctor(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-def doctorHomepage(request):
+def doctorHomePage(request):
     return render(request, 'doctorHomePage.html')
 
 def average_statistics(request):
