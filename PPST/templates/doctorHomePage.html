@@ -40,11 +40,18 @@
     </div>
 </nav>
 
+{% extends 'doctorNav.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
  <!-- Hero Section-->
  <div class="main">
     <div class="main__container">
         <div class="main__content">
-            
             <h1>Dr. {{ doctor_first_name }} {{ doctor_last_name }} Messages</h1>
             <div class="main__content--notification">
                 <button id="notification__button">Show Notifications</button>
@@ -66,6 +73,7 @@
     </div>
 </div>
 
+
 <script>
     document.getElementById("notification__button").addEventListener("click", function() {
         const notificationList = document.getElementById("notifications-list");
@@ -85,3 +93,4 @@
 <script src="{% static 'notifications.js' %}"></script>
 
 </html>
+{% endblock %}

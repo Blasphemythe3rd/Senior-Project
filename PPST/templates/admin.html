@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Doctors</title>
+    <script>
+        // Function to get the CSRF token from the cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
+</head>
+<body>
+    <div id="loginPage">
+        <h1>Admin Login</h1>
+        <form id="loginForm">
+            {% csrf_token %}
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br><br>
+
+            <button type="submit">Login</button>
+        </form>
+        <p id="loginError" style="color: red;"></p>
+    </div>
+
+    <div id="adminPage" style="display: none;">
+        <h1>Admin Page - Doctors</h1>
+        
+        <div>
+            <h2>Add New Doctor</h2>
+            <form id="addDoctorForm">
+                {% csrf_token %}
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" required><br><br>
+                
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" required><br><br>
+                
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required><br><br>
+                
+                <button type="submit">Add Doctor</button>
+            </form>
+        </div>
+
+        <div>
+            <h2>Doctors List</h2>
+            <ul id="doctorList">
+                {% for doctor in doctors %}
+                    <li onclick="fetchDoctorTests('{{ doctor.id }}')">
+                        {{ doctor.first_name }} {{ doctor.last_name }} - {{ doctor.email }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <h2>Tests for Selected Doctor</h2>
+            <div id="testList">
+                <p>Select a doctor to see their associated tests.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            let formData = new FormData(this);
+            let data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            fetch('/PPST/admin/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken  // CSRF token for security
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to login: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('adminPage').style.display = 'block';
+                } else {
+                    document.getElementById('loginError').textContent = data.error;
+                }
+            })
+            .catch(error => {
+                console.error('Error during login:', error);
+                document.getElementById('loginError').textContent = 'An error occurred. Please try again.';
+            });
+        });
+
+        document.getElementById('addDoctorForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let formData = new FormData(this);
+            let data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            fetch('/PPST/admin/add_doctor/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken  // CSRF token for security
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log('Response:', response);  // Debugging: check the response status and data
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response Data:', data);  // Debugging: inspect the returned data
+                if (data.message) {  // Check for the message key in the response
+                    alert('Doctor added successfully!');
+                    location.reload();
+                } else {
+                    alert('Error adding doctor: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error adding doctor:', error);  // More detailed error message in console
+                alert('An error occurred. Please try again.');  // Alert for the user in case of error
+            });
+        });
+
+        function fetchDoctorTests(doctorId) {
+            fetch(`/PPST/admin/doctor_tests/${doctorId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    let testList = document.getElementById("testList");
+                    testList.innerHTML = `<h3>Tests for ${data.doctor}</h3>`;
+                    if (data.tests && data.tests.length > 0) {
+                        let ul = document.createElement("ul");
+                        data.tests.forEach(test => {
+                            let li = document.createElement("li");
+                            li.innerHTML = `
+                                <strong>Test ID:</strong> ${test.test_id} <br>
+                                <strong>Time Started:</strong> ${formatDateTime(test.time_started)} <br>
+                                <strong>Time Ended:</strong> ${formatDateTime(test.time_ended)} <br>
+                                <strong>Status:</strong> ${test.status} <br>
+                                <strong>Patient Age:</strong> ${test.patient_age} <br>
+                            `;
+                            ul.appendChild(li);
+                        });
+                        testList.appendChild(ul);
+                    } else {
+                        testList.innerHTML += "<p>No tests found.</p>";
+                    }
+                })
+                .catch(error => console.error("Error fetching doctor tests:", error));
+        }
+
+        function formatDateTime(dateTimeString) {
+            let date = new Date(dateTimeString);
+            return date.toLocaleString();
+        }
+    </script>
+</body>
+</html>

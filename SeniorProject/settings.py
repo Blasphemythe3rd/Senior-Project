@@ -122,7 +122,20 @@ STATICFILES_DIRS = [
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / "PPST/static",
+]
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#email backend connection (im not using an env for this because its a fake email I made just for this)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ppsttestnoreply@gmail.com'
+EMAIL_HOST_PASSWORD = 'aggh jiku ryjz ideb'  

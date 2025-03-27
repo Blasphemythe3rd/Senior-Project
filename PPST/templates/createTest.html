@@ -1,0 +1,71 @@
+{% extends 'doctorNav.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset = "UTF-8">
+    <title> Create Test </title>
+    <link rel="stylesheet" type="text/css" href="{% static 'createTest.css' %}">
+</head>
+
+<h1> Test Creation </h1>
+
+<h2>
+    Currently Signed in as Doctor : {{ doctor }}
+</h2>
+
+<body>
+    <div>
+        <label for="patient_age">Patient Age:</label>
+        <input type="text" id="age" name="age">    
+    </div>
+
+    <div>
+        <label for="patient_email">Patient Email:</label>
+        <input type="text" id="email" name="email">    
+    </div>
+    <div>
+    </div>
+
+    <button id="sendEmailBtn">
+      Create Test
+    </button>
+    
+    <script>
+        document.getElementById("sendEmailBtn").addEventListener("click", function() {
+            const age = document.getElementById("age").value;  // pulls age from input
+            const email = document.getElementById("email").value;  // pulls email from input
+    
+            if (!email) {
+                alert("Please enter a valid email address."); // if email is not entered tell to enter
+                return;
+            }
+    
+            fetch("{% url 'PPST:createTest' %}", {   
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}", 
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ age: age, email: email,})  // sends age and email to backend
+            })
+            .then(response => response.json())  // gets response from backend
+            .then(data => {
+                if (data.message) {
+                    alert("Test Created Successfully! Test ID: " + data.test_id);
+                } else if (data.error) {
+                    alert("Error: " + data.error);  
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>  
+
+</body>
+
+</html>
+{% endblock %}
