@@ -1,3 +1,9 @@
+{% extends 'doctorNav.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 {% load static %}
@@ -7,47 +13,7 @@
         <link rel="stylesheet" type="text/css" href="{% static 'doctorHomePage.css' %}">
     </head>
 
-<nav class="navbar" id = "DrNavbar">
-    <div class="navbar_container">
-        
-        <img src="{% static 'images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
-        
-        <div class = "navbar_toggle" id = "mobile-menu">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </div>
-        <ul class="navbar_menu">
-            <li class="navbar_item">
-                <a href="/DoctorsNavigations/patientsLogs.html" class ="navbar_links">
-                    Patient Logs
-                </a>
-            </li>
-            <li class="navbar_item">
-                <a href="./DoctorsNavigations/averageStatistics.html" class ="navbar_links">
-                    Average Statistics
-                </a>
-            </li>
-            <li class="navbar_item">
-                <a href="./DoctorsNavigations/testCreation.html" class ="navbar_links">
-                    Test Creation
-                </a>
-            </li>
-            <li class= "navbar_btn">
 
-            </li>
-        </ul>
-    </div>
-</nav>
-
-{% extends 'doctorNav.html' %}
-{% load static %}
-
-{% block title %}Home{% endblock %}
-
-{% block content %}
-<!DOCTYPE html>
-<html lang="en">
  <!-- Hero Section-->
  <div class="main">
     <div class="main__container">
@@ -73,19 +39,16 @@
     </div>
 </div>
 
-
 <script>
     document.getElementById("notification__button").addEventListener("click", function() {
         const notificationList = document.getElementById("notifications-list");
         const button = document.getElementById("notification__button");
-
-        // Toggle the visibility of the notifications list
         if (notificationList.style.display === "none") {
-            notificationList.style.display = "block";  // Show notifications
-            button.textContent = "Hide Notifications";  // Change button text
+            notificationList.style.display = "block";  
+            button.textContent = "Hide Notifications";  
         } else {
-            notificationList.style.display = "none";  // Hide notifications
-            button.textContent = "Show Notifications";  // Change button text
+            notificationList.style.display = "none";  
+            button.textContent = "Show Notifications";  
         }
     });
 </script>
