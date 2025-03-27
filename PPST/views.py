@@ -5,6 +5,7 @@ from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import FileResponse
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -82,7 +83,7 @@ def doctor_login(request):
             return redirect('PPST:doctorHomePage')
         else:
             # Invalid login
-            return render(request, 'doctorLoginInitial.html', {'error': 'Invalid username or password'})
+            messages.error(request, 'Invalid username or password')
     else:
         return render(request, 'doctorLoginInitial.html')
 
