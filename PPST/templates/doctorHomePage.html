@@ -19,7 +19,7 @@
         </div>
         <ul class="navbar_menu">
             <li class="navbar_item">
-                <a href="./DoctorsNavigations/patientsLogs.html" class ="navbar_links">
+                <a href="/DoctorsNavigations/patientsLogs.html" class ="navbar_links">
                     Patient Logs
                 </a>
             </li>
@@ -45,21 +45,42 @@
     <div class="main__container">
         <div class="main__content">
             
-            <h1>Notifications for Dr. {{ doctor_first_name }} {{ doctor_last_name }}</h1>
+            <h1>Dr. {{ doctor_first_name }} {{ doctor_last_name }} Messages</h1>
+            <div class="main__content--notification">
+                <button id="notification__button">Show Notifications</button>
+            </div>
 
-            <ul>
+
+            <ul id="notification__list" style="display: none;">
                 {% for notification in notifications %}
                     <li>{{ notification.message }}</li>
                 {% empty %}
                     <li>No notifications.</li>
                 {% endfor %}
             </ul>
+
         </div>
         <div class="main__img--container">
             <img src= "{% static 'images/Goomba.webp' %}" alt="pic" id="main__img">
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById("notification__button").addEventListener("click", function() {
+        const notificationList = document.getElementById("notifications-list");
+        const button = document.getElementById("notification__button");
+
+        // Toggle the visibility of the notifications list
+        if (notificationList.style.display === "none") {
+            notificationList.style.display = "block";  // Show notifications
+            button.textContent = "Hide Notifications";  // Change button text
+        } else {
+            notificationList.style.display = "none";  // Hide notifications
+            button.textContent = "Show Notifications";  // Change button text
+        }
+    });
+</script>
 
 <script src="{% static 'notifications.js' %}"></script>
 
