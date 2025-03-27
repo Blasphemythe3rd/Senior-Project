@@ -98,8 +98,8 @@ def generateTest(request): #this does nothing right now its just so link kinda w
 
 def doctor_login(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -107,6 +107,7 @@ def doctor_login(request):
         else:
             # Invalid login
             messages.error(request, 'Invalid username or password')
+            return render(request, 'doctorLoginInitial.html')  # Ensure a response is returned
     else:
         return render(request, 'doctorLoginInitial.html')
 
