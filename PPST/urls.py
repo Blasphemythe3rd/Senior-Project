@@ -19,5 +19,7 @@ urlpatterns = [
     path('admin/doctor_tests/<int:doctor_id>/', views.doctor_tests, name='doctor_tests'),
     path('admin/test_details/<int:test_id>/', views.fetch_test_details, name='fetch_test_details'),
     path('admin/login/', views.admin_login, name='admin_login'),
-    path('doctorHomepage/', views.doctorHomepage, name="doctorHomepage"),
+    path('doctorHomePage/', views.doctorHomePage, name="doctorHomePage"),
+    path("average_statistics/", views.average_statistics, name="average_statistics"),
 ]
+
