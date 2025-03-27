@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
-from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli
+from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli, Notification
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import FileResponse
@@ -23,7 +23,6 @@ logging.basicConfig(level=logging.INFO)
 
 import random
 from django.shortcuts import render
-from .models import Given_Stimuli
 
 def practiceTest(request):
     return render(request,'practiceTest.html')
@@ -36,6 +35,29 @@ def testScreen(request):
 
 def test(request):
     return HttpResponse("Hello World!")
+
+
+def doctorHomePage(request, username):
+
+    doctors = Doctor.objects.first()
+
+    selected_doctor_id = request.GET.get('doctor')
+
+    try:
+        # Fetch the doctor by username
+        selected_doctor = Doctor.objects.get(username=username)
+        # Fetch notifications for the selected doctor
+        notifications = Notification.objects.filter(users=selected_doctor)
+    except Doctor.DoesNotExist:
+        # If the doctor does not exist, raise a 404 error
+        raise Http404("Doctor not found")
+
+    return render(request, 'doctorHomePage.html', {
+        'doctors': doctors,
+        'notifications': notifications,
+        'selected_doctor_id': selected_doctor_id,
+        'doctor_first_name': selected_doctor.first_name,
+        'doctor_last_name': selected_doctor.last_name
   
 @require_POST
 def createTest(request):
