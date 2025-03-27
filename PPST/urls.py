@@ -5,8 +5,6 @@ app_name = "PPST"
 
 urlpatterns = [
     path("test/", views.test, name="test"),
-    path("doctorHomePage/<str:username>/", views.doctorHomePage, name="doctorHomePage"),
-    path("doctorHomePage/<str:username>/DoctorsNavigations/patientsLogs.html", views.patientsLogs, name="patientsLogs"),
     path("createtest/", views.createTest, name="createTest"), 
     path("ppstcreate/", views.ppstCreate, name="ppstCreate"),
     path("test/<str:testId>", views.test, name="test"),
