@@ -58,6 +58,7 @@ def doctorHomePage(request, username):
         'selected_doctor_id': selected_doctor_id,
         'doctor_first_name': selected_doctor.first_name,
         'doctor_last_name': selected_doctor.last_name
+    })
   
 @require_POST
 def createTest(request):
