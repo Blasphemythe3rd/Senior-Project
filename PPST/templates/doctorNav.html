@@ -12,7 +12,9 @@
     <nav class="navbar" id = "DrNavbar">
         <div class="navbar_container">
             
-            <img src="{% static 'Images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
+            <a href="{% url 'PPST:doctorHomePage' %}">
+                <img src="{% static 'Images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
+            </a>
             
             <div class = "navbar_toggle" id = "mobile-menu">
                 <span class="bar"></span>
