@@ -5,7 +5,7 @@ from PPST.models import Doctor, Test, Stimuli_Response
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import FileResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
@@ -89,7 +89,8 @@ def testInfo(request):
     percentages = []
     notEmpty = False
 
-    currDoc = Doctor.objects.get(username = "doctor0") # will get the doctor that is signed in (waiting for sign in function)
+    currDoc = get_user(request)
+    #currDoc = Doctor.objects.get(username = "doctor0") # use for debugging
     tests = Test.objects.filter(doctor = currDoc)
 
     for test in tests: # calculate correct response %
