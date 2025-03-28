@@ -9,107 +9,6 @@ body{
     font-family: 'Kumbh Sans', sans-serif;
 }
 
-.navbar {
-    background: #965531;
-    height: 120px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.2rem;
-    position: relative;
-    top: 0;
-    z-index: 999;
-}
-
-.navbar_container {
-    display: flex;
-    justify-content: space-between;
-    height: 120px;
-    z-index: 1;
-    width:100%;
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 0 50px;
-}
-
-#navbar_logo{
-    background-color: #3b5c38;
-    background-image: linear-gradient(to top, #f7f5df, #3b5c38);
-    background-size: 100%;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-text-fill-color: transparent;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 2rem;
-    border-radius: 50%;
-}
-.fa-gem{
-    margin-right: 0.5rem;
-}
-
-.navbar_menu{
-    display: flex;
-    align-items: center;
-    list-style: none;
-    text-align: center;
-}
-
-.navbar_item{
-    height: 80px;
-    margin-right: 2rem;
-}
-
-.navbar_item:last-child {
-    margin-right: 0; 
-}
-
-.navbar_links {
-    color: #f7f4de;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    padding: 0 8rem;
-    height: 100%;
-}
-
-.navbar_btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 1rem;
-    width: 100%
-}
-
-.button{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none;
-    padding: 10px 20px;
-    height: 100%;
-    width: 100%;
-    border: none;
-    outline: none;
-    border-radius: 4px;
-    background: #f7f5df;
-    color: #542b0d;
-}
-
-.button:hover {
-    background: #3b5c38;
-    color: #f7f5df;
-    transition: all 0.3s ease;
-}
-
-.navbar__links:hover{
-    color: #3b5c38;
-    transition: all 0.3s ease;
-}
 
 /* Hero Section CSS */
 
@@ -164,6 +63,63 @@ body{
     color: #888;
     display: block; /* Ensure the timestamp appears below the message */
     margin-top: 0.5rem;
+}
+
+
+/* notification Section */
+
+.notification__button {
+    background-color: #ffcc00; /* Gold background color */
+    color: #141414; /* Dark text color for contrast */
+    border: none;
+    padding: 10px 20px; /* Add some padding around the text */
+    font-size: 1.2rem; /* Slightly larger font for better readability */
+    font-weight: bold; /* Bold text */
+    cursor: pointer; /* Change cursor to pointer when hovering */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition for background and scale */
+}
+
+/* Hover effect for the button */
+.notification__button:hover {
+    background-color: #e6b800; /* Darker gold on hover */
+    transform: scale(1.05); /* Slightly enlarge the button */
+}
+
+/* Styling for the notification textarea */
+.notification__textbox {
+    background-color: #f7f4de; /* Background color matches the page background */
+    color: #141414; /* Dark text color */
+    border: 1px solid #ccc; /* Light gray border */
+    padding: 15px; /* Space inside the textarea */
+    font-size: 1rem; /* Adjust font size */
+    width: 100%; /* Make the textarea full width */
+    height: 200px; /* Set a fixed height */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+    resize: none; /* Disable resizing */
+    display: none; /* Hide by default */
+    overflow-y: auto; /* Enable vertical scrolling if content overflows */
+}
+
+/* Focus effect on the textarea */
+.notification__textbox:focus {
+    border-color: #ffcc00; /* Gold border on focus */
+    outline: none; /* Remove the default focus outline */
+    box-shadow: 0px 0px 10px rgba(255, 204, 0, 0.5); /* Glowing effect on focus */
+}
+
+/* Adjustments for mobile responsiveness */
+@media screen and (max-width: 768px) {
+    .notification__button {
+        font-size: 1rem; /* Adjust font size for mobile */
+        padding: 8px 16px; /* Adjust padding for smaller screens */
+    }
+
+    .notification__textbox {
+        font-size: 0.9rem; /* Adjust font size */
+        height: 150px; /* Adjust height for smaller screens */
+    }
 }
 
 @media screen and (max-width: 768px) {
