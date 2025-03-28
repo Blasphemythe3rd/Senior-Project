@@ -38,9 +38,7 @@ def test(request):
 
 
 def doctorHomePage(request, username):
-
     doctors = Doctor.objects.first()
-
     selected_doctor_id = request.GET.get('doctor')
 
     try:
@@ -56,8 +54,7 @@ def doctorHomePage(request, username):
         'doctors': doctors,
         'notifications': notifications,
         'selected_doctor_id': selected_doctor_id,
-        'doctor_first_name': selected_doctor.first_name,
-        'doctor_last_name': selected_doctor.last_name
+        'doctor': selected_doctor  # Pass the doctor object here
     })
   
 @require_POST
