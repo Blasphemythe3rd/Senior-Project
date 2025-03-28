@@ -246,7 +246,14 @@ def list_doctors(request):
 def fetch_test_details(request, test_id):
     try:
         test = Test.objects.get(test_id=test_id)
-        stimuli_responses = Stimuli_Response.objects.filter(test=test).values("enum_type", "response", "response_per_click", "given__given_stimuli", "given__correct_order")
+        stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
+            "enum_type", 
+            "response", 
+            "response_per_click", 
+            "given__given_stimuli", 
+            "given__correct_order"
+        )
+
         return JsonResponse({
             "test_id": test.test_id,
             "time_started": test.time_started,
@@ -264,15 +271,28 @@ def doctor_tests(request, doctor_id):
         doctor = Doctor.objects.get(id=doctor_id)
         tests = Test.objects.filter(doctor=doctor)
         
+        # Map status codes to human-readable strings
+        status_mapping = {
+            0: "Not Started",
+            1: "In Progress",
+            2: "Completed"
+        }
+        
         test_details = []
         for test in tests:
-            stimuli_responses = Stimuli_Response.objects.filter(test=test).values("enum_type", "response", "response_per_click", "given__given_stimuli", "given__correct_order")
+            stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
+                "enum_type", 
+                "response", 
+                "response_per_click", 
+                "given__given_stimuli", 
+                "given__correct_order"
+            )
             
             test_details.append({
                 "test_id": test.test_id,
-                "time_started": test.time_started,
-                "time_ended": test.time_ended,
-                "status": test.status,
+                "time_started": test.time_started.strftime('%m/%d/%Y, %H:%M:%S') if test.time_started else None,
+                "time_ended": test.time_ended.strftime('%m/%d/%Y, %H:%M:%S') if test.time_ended else None,
+                "status": status_mapping.get(test.status, "Unknown"),  # Map status to human-readable string
                 "patient_age": test.patient_age,
                 "stimuli_responses": list(stimuli_responses)
             })
@@ -284,7 +304,7 @@ def doctor_tests(request, doctor_id):
     except Doctor.DoesNotExist:
         return JsonResponse({"error": "Doctor not found"}, status=404)
     
-@csrf_exempt
+    
 @require_POST
 def add_doctor(request):
     """Adds a new doctor, ensuring a unique username in 'doctor#' format."""
