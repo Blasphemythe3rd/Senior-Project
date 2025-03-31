@@ -21,4 +21,6 @@ urlpatterns = [
     path('admin/login/', views.admin_login, name='admin_login'),
     path('doctorHomePage/', views.doctorHomePage, name="doctorHomePage"),
     path("average_statistics/", views.average_statistics, name="average_statistics"),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
 ]

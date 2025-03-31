@@ -16,13 +16,16 @@ import csv
 import tempfile
 import pandas as pd
 import json
+from django.utils.crypto import get_random_string
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-
 import random
 from django.shortcuts import render
+
+# Store tokens temporarily (use a database model for production)
+reset_tokens = {}
 
 def practiceTest(request):
     return render(request,'practiceTest.html')
@@ -379,3 +382,41 @@ def average_statistics(request):
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
         'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
+
+def forgot_password(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        try:
+            user = User.objects.get(username=username)
+            token = get_random_string(length=6, allowed_chars='0123456789')
+            reset_tokens[username] = token
+            send_mail(
+                'Password Reset Code',
+                f'Your password reset code is: {token}',
+                'noreply@example.com',
+                [user.email],
+                fail_silently=False,
+            )
+            return redirect('PPST:reset_password', token=token)
+        except User.DoesNotExist:
+            messages.error(request, 'Username not found.')
+    return render(request, 'forgot_password.html')
+
+def reset_password(request, token):
+    if request.method == 'POST':
+        entered_token = request.POST.get('token')
+        new_password = request.POST.get('new_password')
+        username = request.POST.get('username')
+        if reset_tokens.get(username) == entered_token:
+            try:
+                user = User.objects.get(username=username)
+                user.set_password(new_password)
+                user.save()
+                del reset_tokens[username]
+                messages.success(request, 'Password reset successfully.')
+                return redirect('PPST:doctor_login')
+            except User.DoesNotExist:
+                messages.error(request, 'Invalid username.')
+        else:
+            messages.error(request, 'Invalid token.')
+    return render(request, 'reset_password.html', {'token': token})
