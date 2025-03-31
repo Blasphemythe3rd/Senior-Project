@@ -9,6 +9,7 @@ urlpatterns = [
     path("ppstcreate/", views.ppstCreate, name="ppstCreate"),
     path("test/<str:testId>", views.test, name="test"),
     path('login/', views.doctor_login, name='doctor_login'),
+    path('logout/', views.logout_view, name='logout'),
     path("testInfo/", views.testInfo, name="testInfo"),
     path("download_test/<str:test_id>/", views.download_test, name="download_test"),
     path('practice_test/', views.practiceTest, name="practiceTest"),    

@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.http import FileResponse
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, get_user
+from django.contrib.auth import authenticate, login, get_user, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
@@ -110,6 +110,10 @@ def doctor_login(request):
             return render(request, 'doctorLoginInitial.html')  # Ensure a response is returned
     else:
         return render(request, 'doctorLoginInitial.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('PPST:doctor_login')
 
 def testInfo(request):
     QUESTIONS_PER_TEST = 14
