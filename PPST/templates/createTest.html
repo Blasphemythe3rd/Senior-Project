@@ -1,12 +1,16 @@
+{% extends 'doctorNav.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang = "en">
-{% load static %}
 <head>
     <meta charset = "UTF-8">
     <title> Create Test </title>
     <link rel="stylesheet" type="text/css" href="{% static 'createTest.css' %}">
-
-<html>
+</head>
 
 <h1> Test Creation </h1>
 
@@ -64,3 +68,4 @@
 </body>
 
 </html>
+{% endblock %}

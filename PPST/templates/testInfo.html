@@ -1,4 +1,9 @@
+{% extends 'doctorNav.html' %}
 {% load static %}
+
+{% block title %}Test Info{% endblock %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang = "en">
     <head>
@@ -17,7 +22,7 @@
 
 
 <h2>
-    Currently Signed in as: <span class="doctor_name">{{ doctor }}</span>
+    Currently Signed in as: <span class="doctor_name">Dr. {{ doctor.first_name }} {{ doctor.last_name }}</span>
 </h2>
 
 <body>
@@ -75,3 +80,4 @@
 </body>
 
 </html>
+{% endblock %}

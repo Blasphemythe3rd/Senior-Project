@@ -1,0 +1,59 @@
+{% extends 'doctorNav.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{% static 'doctorHomePage.css' %}">
+    </head>
+
+
+ <!-- Hero Section-->
+ <div class="main">
+    <div class="main__container">
+        <div class="main__content">
+            <h1>Dr. {{ doctor_first_name }} {{ doctor_last_name }} Messages</h1>
+            <div class="main__content--notification">
+                <button id="notification__button">Show Notifications</button>
+            </div>
+
+
+            <ul id="notification__list" style="display: none;">
+                {% for notification in notifications %}
+                    <li>{{ notification.message }}</li>
+                {% empty %}
+                    <li>No notifications.</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+        <div class="main__img--container">
+            <img src= "{% static 'images/Goomba.webp' %}" alt="pic" id="main__img">
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("notification__button").addEventListener("click", function() {
+        const notificationList = document.getElementById("notifications-list");
+        const button = document.getElementById("notification__button");
+        if (notificationList.style.display === "none") {
+            notificationList.style.display = "block";  
+            button.textContent = "Hide Notifications";  
+        } else {
+            notificationList.style.display = "none";  
+            button.textContent = "Show Notifications";  
+        }
+    });
+</script>
+
+<script src="{% static 'notifications.js' %}"></script>
+
+</html>
+{% endblock %}
