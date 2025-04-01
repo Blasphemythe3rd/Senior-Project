@@ -18,19 +18,19 @@
  <div class="main">
     <div class="main__container">
         <div class="main__content">
-            <h1>Dr. {{ doctor_first_name }} {{ doctor_last_name }} Messages</h1>
+            <h1>Dr. {{ user.first_name }} {{ user.last_name }} Messages</h1>
+            
             <div class="main__content--notification">
                 <button id="notification__button">Show Notifications</button>
             </div>
 
-
-            <ul id="notification__list" style="display: none;">
+            <textarea id="notification__textbox" style="display:none;" rows="10" cols="50">
                 {% for notification in notifications %}
-                    <li>{{ notification.message }}</li>
+                    {{ notification.message }}
                 {% empty %}
                     <li>No notifications.</li>
                 {% endfor %}
-            </ul>
+            </textarea>
 
         </div>
         <div class="main__img--container">
@@ -40,20 +40,45 @@
 </div>
 
 <script>
-    document.getElementById("notification__button").addEventListener("click", function() {
-        const notificationList = document.getElementById("notifications-list");
-        const button = document.getElementById("notification__button");
-        if (notificationList.style.display === "none") {
-            notificationList.style.display = "block";  
-            button.textContent = "Hide Notifications";  
-        } else {
-            notificationList.style.display = "none";  
-            button.textContent = "Show Notifications";  
+    document.addEventListener('DOMContentLoaded', function(){
+        console.log('JavaScript Loaded');
+
+        document.getElementById("notification__button").addEventListener("click", function() {
+            console.log('Notification Button Clicked');
+            const notificationTextbox = document.getElementById("notification__textbox");
+
+            const button = document.getElementById("notification__button");
+
+            if (notificationTextbox.style.display === "none") {
+                console.log('Displaying Notifications');
+                notificationTextbox.style.display = "block";  
+                button.textContent = "Hide Notifications";  
+            } else {
+                console.log('Hiding Notifications');
+                notificationTextbox.style.display = "none";  
+                button.textContent = "Show Notifications";  
         }
+    })
     });
 </script>
 
-<script src="{% static 'notifications.js' %}"></script>
+<script>
+    /*
+    function updateNotifications() {
+    fetch('/notifications/') // URL to your notifications view
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('notification-box').innerHTML = data;
+        });
+}
+
+// Update notifications every 5 seconds (adjust as needed)
+setInterval(updateNotifications, 5000);
+
+// Initial update on page load
+updateNotifications();
+*/
+</script>
 
 </html>
 {% endblock %}
