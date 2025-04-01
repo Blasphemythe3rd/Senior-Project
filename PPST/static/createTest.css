@@ -36,6 +36,7 @@ body{
     background-color: #3b5c38;
     background-image: linear-gradient(to top, #f7f5df, #3b5c38);
     background-size: 100%;
+    background-clip: text;
     -webkit-background-clip: text;
     -moz-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -115,40 +116,88 @@ div {
     margin-bottom: 15px;
 }
 
-label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
+.form-wrapper {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.form-wrapper h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.form-wrapper h2 {
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+.form-wrapper form > div {
+    margin-bottom: 25px;
+    text-align: left;
 }
 
 input[type="text"] {
     width: 100%;
-    max-width: 400px;
-    padding: 8px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
 }
 
-.btn {
-    display: inline-block;
-    padding: 10px 15px;
-    font-size: 14px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-align: center;
-}
-
-.btn-primary {
-    background-color: #007bff;
+button#sendEmailBtn {
+    background-color: #b86d3f;
     color: white;
+    padding: 14px 30px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-.btn-primary:hover {
-    background-color: #0056b3;
+button#sendEmailBtn:hover {
+    background-color: #9a5933;
 }
-
-h2 {
+.custom-popup {
+    background: #1e1e2f;
+    color: #ffffff;
+    padding: 24px 32px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+    width: 350px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+  
+  .custom-popup h2 {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  
+  .custom-popup p {
+    font-size: 14px;
     margin-bottom: 20px;
-}
+  }
+  
+  .custom-popup button {
+    background-color: #2ec500;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .custom-popup button:hover {
+    background-color: #00bfa6;
+  }
+  

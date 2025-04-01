@@ -41,14 +41,16 @@
         </div>
         
     
-    <!-- Clear button -->
-    <button onclick="clearDisplay()">Clear</button>
 
-    <script>
+        <script>
+        let selectedString = ""; // Stores clicked values
+
         // Get the given_stimuli string dynamically from the Django context
         const givenStimuli = "{{ stimuli_list }}";  // This is where Django passes the value
 
-        console.log("Stimuli List:", givenStimuli);
+        const consTest = "{{ stimuli_list }}";
+
+        console.log("Stimuli Objects:", consTest);
 
         document.addEventListener('DOMContentLoaded', function() {
             let currentIndex = 7;  // Keeps track of the current index of given_stimuli.
@@ -79,28 +81,46 @@
 
         });
 
-        function clearDisplay() {
-            document.getElementById('input-display').textContent = "Selected: "; // Clear the display
-            
-        }
     </script>
 
+<button id="nextButton">Next</button>
+
 <script>
+    let recordedInputs = "";  // Stores the clicked characters
+    let recordedTimes = "";   // Stores the timestamps
+
     document.addEventListener('DOMContentLoaded', function() {
         const boxes = document.querySelectorAll('.digit-box, .letter-box');
+
         boxes.forEach(box => {
             box.addEventListener('click', function() {
                 if (!this.classList.contains('clicked')) {
                     this.classList.add('clicked');
-                    
+
+                    let character = this.textContent.trim();  // Get the clicked character
+                    let timestamp = new Date().toISOString(); // Get timestamp in ISO format
+
+                    // Append to the recorded strings, separating entries with commas
+                    recordedInputs += (recordedInputs ? "," : "") + character;
+                    recordedTimes += (recordedTimes ? "," : "") + timestamp;
+
                     setTimeout(() => {
                         this.classList.remove('clicked');
-                    }, 100);  // Wait for 1 second
+                    }, 100);  // Wait for 100ms
                 }
             });
         });
+
+        document.getElementById("nextButton").addEventListener("click", function() {
+            console.log("Recorded Inputs:", recordedInputs);
+            console.log("Recorded Times:", recordedTimes);
+
+            recordedInputs = "";
+            recordedTimes = "";
+        });
     });
 </script>
+
 
 </body>
 </html>

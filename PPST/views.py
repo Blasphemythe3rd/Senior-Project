@@ -1,5 +1,6 @@
+import tempfile
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli, Notification
 from django.core.mail import send_mail
@@ -24,14 +25,33 @@ logging.basicConfig(level=logging.INFO)
 import random
 from django.shortcuts import render
 
-def practiceTest(request):
-    return render(request,'practiceTest.html')
+def next_page(request, selected_values):
+    if request.method == "POST":
+        selected_values = request.POST.get('selected_values', '')
+        return render(request, 'next_page.html', {'selected_values': selected_values})
+    return render(request, 'next_page.html')
 
-def testScreen(request):
+from django.http import HttpResponseNotFound
+
+def testScreen(request, testId):
+    # Check if the testId exists in the database
+    test_exists = Test.objects.filter(test_id=testId).exists()
+
+    if not test_exists:
+        return HttpResponseNotFound("Test ID not found. Please contact your doctor.")  # Return a 404 response if test_id is invalid
+
+    # Fetch the valid test object
+    test_instance = Test.objects.get(test_id=testId)
+
+    # Retrieve all stimuli objects
     stimuli_objects = Given_Stimuli.objects.all()
     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
 
-    return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
+    return render(request, 'testScreen.html', {
+        'stimuli_list': stimuli_list,
+        'test_id': test_instance,
+        'stimuli_objects': stimuli_objects
+    })
 
 def test(request):
     return HttpResponse("Hello World!")
@@ -292,6 +312,7 @@ def add_doctor(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 
 def doctorHomePage(request):
     doctor = request.user
