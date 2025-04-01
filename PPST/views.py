@@ -397,7 +397,7 @@ def forgot_password(request):
             send_mail(
                 'Password Reset Code',
                 f'Your password reset code is: {token}',
-                'noreply@example.com',
+                settings.EMAIL_HOST_USER,
                 [user.email],
                 fail_silently=False,
             )
