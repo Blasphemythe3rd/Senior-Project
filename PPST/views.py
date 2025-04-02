@@ -405,3 +405,11 @@ def average_statistics(request):
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
         'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
+
+def testComplete(request):
+    return render(request, "testComplete.html", {})
+
+def testStart(request, testId):
+    return render(request, "testStart.html", {
+        'testId' : testId
+    })

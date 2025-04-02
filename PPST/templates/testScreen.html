@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sample Page</title>
+    <title>PPST Test</title>
     {% load static %}
     <link rel="stylesheet" href=" {% static 'initialStyle.css' %}">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <style>
 
     </style>
@@ -68,13 +69,13 @@
                 }
 
                 //console.log(currChar, currStimuli)
-                console.log(charIndex, stimIndex)
+                console.log(givenStimuli[stimIndex], givenStimuli[stimIndex].charAt(charIndex))
                 const currentStimString = givenStimuli[stimIndex];
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
                     currChar += 1;
                 } else {
-                    inputDisplay.textContent = "\n";
+                    inputDisplay.textContent = "Input Now";
                 }
             }
 
@@ -91,7 +92,6 @@
             setTimeout(() => {
                 clearInterval(interval.length);  // Stop the interval after all stimuli have been displayed
             }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
-
         });
 
         let recordedInputs = "";  // Stores the clicked characters
@@ -127,6 +127,10 @@
                 recordedTimes = "";
                 currStimuli += 1;
                 currChar = 0;
+
+                if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/");
+                }
             });
         });
     </script>

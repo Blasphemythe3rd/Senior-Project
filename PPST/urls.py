@@ -17,7 +17,9 @@ urlpatterns = [
     # path('testScreen/', views.testScreen, name="testScreen"), 
     
     ## Final Url-Path for Patients
-    path('testScreen/<str:testId>/', views.testScreen, name="testScreen"),    
+    path('testScreen/<str:testId>/', views.testScreen, name="testScreen"), 
+    path('testStart/<str:testId>/', views.testStart, name="testStart"), 
+    path('testComplete/', views.testComplete, name="testComplete"), 
     path("admin/", views.admin_page, name="admin"),  
     path("admin/list_doctors/", views.list_doctors, name="list_doctors"),
     path("admin/add_doctor/", views.add_doctor, name="add_doctor"),
