@@ -412,7 +412,7 @@ def reset_password_token(request):
         token = request.POST.get('token')
         if reset_tokens.get(username) == token:
             request.session['reset_username'] = username  # Store username in session for the next step
-            return redirect('PPST:reset_password_new')
+            return redirect('PPST:reset_password')
         else:
             messages.error(request, 'Invalid token or username.')
     return render(request, 'reset_password_token.html')
@@ -435,4 +435,4 @@ def reset_password(request):
                 messages.error(request, 'Invalid username.')
         else:
             messages.error(request, 'Session expired. Please try again.')
-    return render(request, 'reset_password_new.html')
+    return render(request, 'reset_password.html')
