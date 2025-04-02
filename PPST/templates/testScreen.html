@@ -46,38 +46,50 @@
         let selectedString = ""; // Stores clicked values
 
         // Get the given_stimuli string dynamically from the Django context
-        const givenStimuli = "{{ stimuli_list }}";  // This is where Django passes the value
+        const givenStimuli = "{{ stimuli_list|safe }}";  // This is where Django passes the value
+        const stimuliEnum = "{{ stimuli_enum|safe }}";
+        displayStim = givenStimuli; 
 
-        const consTest = "{{ stimuli_list }}";
+        console.log("First Stimulus:", displayStim);  // Debugging
 
-        console.log("Stimuli Objects:", consTest);
+        console.log("Stimuli Objects:", givenStimuli);
+
+        console.log("Enum Types:", stimuliEnum);
+
+
 
         document.addEventListener('DOMContentLoaded', function() {
-            let currentIndex = 7;  // Keeps track of the current index of given_stimuli.
+            let displayLoopIndex = 1;  // Keeps track of the current index of given_stimuli.
             const inputDisplay = document.getElementById('input-display');
             
+            function loopDisplayStimulus() {
+
+
+
+            }
+
             // Function to display the next character in the stimuli
-            function showNextStimulus() {
-                if (currentIndex < givenStimuli.length + 1) {
+            function loopLetterStimulus() {
+                if (displayLoopIndex < displayStim.length) {
                     
-                    inputDisplay.textContent = givenStimuli[currentIndex];
-                    currentIndex+=1;
-                    if (currentIndex == givenStimuli.length + 1){
+                    inputDisplay.textContent = displayStim[displayLoopIndex];
+                    displayLoopIndex+=1;
+                    if (displayLoopIndex == displayStim.length){
                         inputDisplay.textContent = " ";
                     }
                 }
             }
 
             // Start showing the stimuli one by one
-            showNextStimulus();
+            loopLetterStimulus();
 
             // Trigger the next stimulus display every second (you can adjust the timing)
-            const interval = setInterval(showNextStimulus, 1000);  // 1000ms = 1 second
+            const interval = setInterval(loopLetterStimulus, 1000);  // 1000ms = 1 second
 
             // Stop the display when all characters have been shown
             setTimeout(() => {
                 clearInterval(interval);  // Stop the interval after all stimuli have been displayed
-            }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
+            }, displayStim.length * 1000);  // Stop after all characters have been displayed
 
         });
 
@@ -112,11 +124,24 @@
         });
 
         document.getElementById("nextButton").addEventListener("click", function() {
+            
+
+            //return the times to the test database
+            let timestamp = new Date().toISOString(); // Get timestamp in ISO format
+
+            recordedInputs += (recordedInputs ? "," : "") + "Next Button";
+            recordedTimes += (recordedTimes ? "," : "") + timestamp;
+
             console.log("Recorded Inputs:", recordedInputs);
             console.log("Recorded Times:", recordedTimes);
 
+            //reset recorded for new test.
             recordedInputs = "";
             recordedTimes = "";
+
+            // display the next stimuli
+
+
         });
     });
 </script>
