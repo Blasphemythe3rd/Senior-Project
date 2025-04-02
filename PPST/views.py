@@ -47,6 +47,9 @@ def testScreen(request, testId):
     stimuli_objects = Given_Stimuli.objects.all()
     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
 
+    # gs = list(Given_Stimuli.objects.all())
+    # stimuli = gs[0]
+
     return render(request, 'testScreen.html', {
         'stimuli_list': stimuli_list,
         'test_id': test_instance,
