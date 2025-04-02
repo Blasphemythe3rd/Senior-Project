@@ -57,7 +57,6 @@
         console.log("Stimuli Objects:", consTest);
 
         document.addEventListener('DOMContentLoaded', function () {
-            //let currentIndex = 0;  // Keeps track of the current index of given_stimuli.
             const inputDisplay = document.getElementById('input-display');
 
             // Function to display the next character in the stimuli
@@ -74,12 +73,8 @@
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
                     currChar += 1;
-                    if (charIndex == givenStimuli[stimIndex].length + 1) {
-                        inputDisplay.textContent = " ";
-                    }
                 } else {
-                    currChar = 0;
-                    currStimuli += 1;
+                    inputDisplay.textContent = "\n";
                 }
             }
 
@@ -130,7 +125,8 @@
 
                 recordedInputs = "";
                 recordedTimes = "";
-
+                currStimuli += 1;
+                currChar = 0;
             });
         });
     </script>
