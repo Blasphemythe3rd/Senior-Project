@@ -24,4 +24,6 @@ urlpatterns = [
     path("average_statistics/", views.average_statistics, name="average_statistics"),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
+    path('reset-password-token/', views.reset_password_token, name='reset_password_token'),
+    path('reset-password/', views.reset_password, name='reset_password'),
 ]

@@ -401,26 +401,38 @@ def forgot_password(request):
                 [user.email],
                 fail_silently=False,
             )
-            return redirect('PPST:reset_password', token=token)
+            return redirect('PPST:reset_password_token')
         except User.DoesNotExist:
             messages.error(request, 'Username not found.')
     return render(request, 'forgot_password.html')
 
-def reset_password(request, token):
+def reset_password_token(request):
     if request.method == 'POST':
-        entered_token = request.POST.get('token')
-        new_password = request.POST.get('new_password')
         username = request.POST.get('username')
-        if reset_tokens.get(username) == entered_token:
+        token = request.POST.get('token')
+        if reset_tokens.get(username) == token:
+            request.session['reset_username'] = username  # Store username in session for the next step
+            return redirect('PPST:reset_password_new')
+        else:
+            messages.error(request, 'Invalid token or username.')
+    return render(request, 'reset_password_token.html')
+
+
+def reset_password(request):
+    if request.method == 'POST':
+        username = request.session.get('reset_username')  # Retrieve username from session
+        new_password = request.POST.get('new_password')
+        if username:
             try:
                 user = User.objects.get(username=username)
                 user.set_password(new_password)
                 user.save()
-                del reset_tokens[username]
+                del reset_tokens[username]  # Remove the token after successful reset
+                request.session.pop('reset_username')  # Clear session data
                 messages.success(request, 'Password reset successfully.')
                 return redirect('PPST:doctor_login')
             except User.DoesNotExist:
                 messages.error(request, 'Invalid username.')
         else:
-            messages.error(request, 'Invalid token.')
-    return render(request, 'reset_password.html', {'token': token})
+            messages.error(request, 'Session expired. Please try again.')
+    return render(request, 'reset_password_new.html')
