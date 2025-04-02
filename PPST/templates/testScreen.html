@@ -94,7 +94,7 @@
 
             // Stop the display when all characters have been shown
             setTimeout(() => {
-                clearInterval(interval);  // Stop the interval after all stimuli have been displayed
+                clearInterval(interval.length);  // Stop the interval after all stimuli have been displayed
             }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
 
         });
