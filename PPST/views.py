@@ -1,4 +1,3 @@
-import tempfile
 from django.shortcuts import render, redirect
 from django.http import Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
@@ -11,27 +10,56 @@ from django.contrib.auth import authenticate, login, get_user
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from django.shortcuts import render
+from django.http import HttpResponseNotFound
+import tempfile
 import logging
 import json
 import csv
 import tempfile
 import json
+import random
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .models import Stimuli_Response, Test, Given_Stimuli
 
-import random
-from django.shortcuts import render
+@csrf_exempt  # Use csrf_exempt if you're not using CSRF tokens, though it's recommended to use CSRF tokens in production
+def save_response(request):
+    if request.method == 'POST':
+        # Parse the incoming JSON data from the request
+        data = json.loads(request.body)
 
-def next_page(request, selected_values):
-    if request.method == "POST":
-        selected_values = request.POST.get('selected_values', '')
-        return render(request, 'next_page.html', {'selected_values': selected_values})
-    return render(request, 'next_page.html')
+        # Extract variables from the request data
+        test_id = data.get('test_id')
+        given_stimuli = data.get('given_stimuli')
+        response = data.get('response')
+        response_per_click = data.get('response_per_click')
+        enum_type = data.get('enum_type')
 
-from django.http import HttpResponseNotFound
+        # Retrieve the related 'Test' object using the test_id
+        test = Test.objects.get(test_id=test_id)
 
+        # Retrieve the related 'Given_Stimuli' object (you can adjust the logic here to match how you want to match stimuli)
+        given = Given_Stimuli.objects.get(given_stimuli=given_stimuli)
+
+        # Save the response data to the Stimuli_Response model
+        stimuli_response = Stimuli_Response(
+            test=test,
+            given=given,
+            response=response,
+            response_per_click=response_per_click,
+            enum_type=enum_type
+        )
+        stimuli_response.save()
+
+        return JsonResponse({"message": "Response saved successfully."}, status=200)
+
+    return JsonResponse({"message": "Invalid request method."}, status=400)
 def testScreen(request, testId):
     # Check if the testId exists in the database
     test_exists = Test.objects.filter(test_id=testId).exists()
