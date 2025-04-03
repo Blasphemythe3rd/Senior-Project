@@ -48,6 +48,12 @@
     <button id="nextButton">Next</button>
 
     <script>
+        const stimuliTTS = new SpeechSynthesisUtterance();
+        var voices = window.speechSynthesis.getVoices(); 
+        stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+        stimuliTTS.lang = 'es-US'; // set to english for now will be options to change later
+        stimuliTTS.rate = 1; // rate of speech
+
         let selectedString = ""; // Stores clicked values
 
         // Get the given_stimuli string dynamically from the Django context
@@ -73,6 +79,8 @@
                 const currentStimString = givenStimuli[stimIndex];
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
+                    stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex); // sets text to be spoken to stimuli
+                    window.speechSynthesis.speak(stimuliTTS);
                     currChar += 1;
                 } else {
                     inputDisplay.textContent = "Input Now";

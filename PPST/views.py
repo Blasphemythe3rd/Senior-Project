@@ -16,6 +16,7 @@ import json
 import csv
 import tempfile
 import json
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -412,5 +413,10 @@ def testComplete(request):
 
 def testStart(request, testId):
     return render(request, "testStart.html", {
+        'testId' : testId
+    })
+    
+def settings(request, testId):
+    return render(request, "settings.html", {
         'testId' : testId
     })
