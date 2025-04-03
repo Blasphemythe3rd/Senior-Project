@@ -44,9 +44,10 @@
     </div>
     <!-- converts django list to js readable json format -->
     {{ stimuli_list|json_script:"stimuli-data" }}
-
+    {{ stimuli_enum|json_script:"stimuli-enum" }}
+ 
     <button id="nextButton">Next</button>
-
+    
     <script>
         const stimuliTTS = new SpeechSynthesisUtterance();
         let savedLang = localStorage.getItem('selectedLanguage');
@@ -74,9 +75,12 @@
         // Get the given_stimuli string dynamically from the Django context
         const givenStimuli = JSON.parse(document.getElementById('stimuli-data').textContent); // strings need to be in js format
 
-        const consTest = JSON.parse(document.getElementById('stimuli-data').textContent);
+        const stimuliEnum = JSON.parse(document.getElementById('stimuli-enum').textContent);
 
-
+        const nextButton = document.getElementById("nextButton");
+        
+        nextButton.style.display = "none"; // Hide button
+       
 
         document.addEventListener('DOMContentLoaded', function () {
             const inputDisplay = document.getElementById('input-display');
@@ -84,6 +88,10 @@
             // Function to display the next character in the stimuli
             currChar = 0;
             currStimuli = 0;
+            currGivenStim = null;
+            
+            //Temp varible to fix inputStartTime
+            temp = 0;
             function showNextStimulus(charIndex, stimIndex) {
                 if (currStimuli >= givenStimuli.length) {
                     return;
@@ -92,14 +100,21 @@
                 //console.log(currChar, currStimuli)
                 //console.log(givenStimuli[stimIndex], givenStimuli[stimIndex].charAt(charIndex))
                 const currentStimString = givenStimuli[stimIndex];
+                currGivenStim = currentStimString;
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
                     stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex); // sets text to be spoken to stimuli
                     window.speechSynthesis.speak(stimuliTTS);
                     currChar += 1;
                 } else {
-                    inputDisplay.textContent = "Input Now";
-                    inputStartTime = Date.now(); // saves time for first latency -- users can't start clicking until all chars displayed (enforce this?)
+                    inputDisplay.textContent = " ";
+                    nextButton.style.display = "block"; // show button
+                    
+                    //Temp varible to fix inputStartTime
+                    temp += 1;
+                    if (temp < 2) {
+                        inputStartTime = Date.now(); // saves time for first latency -- users can't start clicking until all chars displayed (enforce this?)
+                    }
                 }
             }
 
@@ -108,7 +123,9 @@
 
             // Trigger the next stimulus display every second
             const interval = setInterval(() => {
+                
                 showNextStimulus(currChar, currStimuli);
+
             }, 1000);
 
 
@@ -120,7 +137,6 @@
         });
 
         let recordedInputs = "";  // Stores the clicked characters
-        let recordedTimes = "";   // Stores the timestamps
         
         lastClickTime = 0;
         firstClick = true;
@@ -129,49 +145,88 @@
         document.addEventListener('DOMContentLoaded', function () {
             const boxes = document.querySelectorAll('.digit-box, .letter-box');
 
+
+            //Settings for each stimuli button ("2, 3, 4, etc..")
             boxes.forEach(box => {
                 box.addEventListener('click', function () {
-                    if (!this.classList.contains('clicked')) {
-                        this.classList.add('clicked');
+                    
+                    if ( nextButton.style.display == "block"){
 
-                        let character = this.textContent.trim();  // Get the clicked character
-                        let timestamp = new Date().toISOString(); // Get timestamp in ISO format
+                        if (!this.classList.contains('clicked')) {
+                            this.classList.add('clicked');
 
-                        // Append to the recorded strings, separating entries with commas
-                        recordedInputs += (recordedInputs ? "," : "") + character;
-                        recordedTimes += (recordedTimes ? "," : "") + timestamp;
+                            let character = this.textContent.trim();  // Get the clicked character
+                            let timestamp = new Date().toISOString(); // Get timestamp in ISO format
+
+                            // Append to the recorded strings, separating entries with commas
+                            recordedInputs += (recordedInputs ? "" : "") + character;
                         
-                        if(firstClick){ // might need change...takes time since stimuli ended to now
-                            firstClick = false;
-                            diff = Date.now() - inputStartTime;
-                        } else {
-                            diff = Date.now() - lastClickTime;
+                            if(firstClick){ // might need change...takes time since stimuli ended to now
+                                firstClick = false;
+                                
+                                diff = Date.now() - inputStartTime;
+                                
+                            } else {
+                                diff = Date.now() - lastClickTime;
+                            }
+                            lastClickTime = Date.now();
+                            latencies.push(diff / 1000); // ms -> seconds
+                        
+                        
+                            setTimeout(() => {
+                                this.classList.remove('clicked');
+                            }, 100);  // Wait for 100ms
                         }
-                        lastClickTime = Date.now();
-                        latencies.push(diff / 1000); // ms -> seconds
-                        
-                        
-                        setTimeout(() => {
-                            this.classList.remove('clicked');
-                        }, 100);  // Wait for 100ms
                     }
                 });
             });
 
+            
             document.getElementById("nextButton").addEventListener("click", function () {
-                console.log("Recorded Inputs:", recordedInputs);
-                //console.log("Recorded Times:", recordedTimes);
-                console.log("latencies: ", latencies);
+                
+                nextButton.style.display = "none"; // Hide button after clicking it. 
 
+                // Create the data object that you want to send to the server
+                const data = {
+                    test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
+                    given_stimuli: givenStimuli[currStimuli],        // Get current stimuli string
+                    response: recordedInputs,                        // The user’s response
+                    response_per_click: latencies,                   // The latencies array
+                    enum_type: stimuliEnum[currStimuli]              // The stimuli enum for current stimuli
+                };
+
+                // Use fetch to send a POST request to your Django server
+                fetch("{% url 'PPST:save_response' %}", {
+                    method: 'POST',                           // Use POST method
+                    headers: {
+                        'Content-Type': 'application/json',   // Specify that you're sending JSON data
+                    },
+                    body: JSON.stringify(data),               // Convert data object to JSON string
+                })
+                    .then(response => response.json())          // Parse the JSON response from Django
+                    .then(data => {
+                        console.log('Success:', data);            // Log success message
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);           // Log any error
+                    });
+
+                    //clear variables
                 recordedInputs = "";
-                recordedTimes = "";
+                latencies = [];
+                lastClickTime = 0;
+                firstClick = true;
                 currStimuli += 1;
                 currChar = 0;
+
+                //Temp varible to fix inputStartTime
+                temp=0;
 
                 if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
                     window.location.replace("http://127.0.0.1:8000/PPST/testComplete/"); // does not allow going back in browser history
                 }
             });
+        
         });
 
     </script>
