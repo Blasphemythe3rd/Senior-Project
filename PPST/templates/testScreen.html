@@ -69,13 +69,14 @@
                 }
 
                 //console.log(currChar, currStimuli)
-                console.log(givenStimuli[stimIndex], givenStimuli[stimIndex].charAt(charIndex))
+                //console.log(givenStimuli[stimIndex], givenStimuli[stimIndex].charAt(charIndex))
                 const currentStimString = givenStimuli[stimIndex];
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
                     currChar += 1;
                 } else {
                     inputDisplay.textContent = "Input Now";
+                    inputStartTime = Date.now(); // saves time for first latency -- users can't start clicking until all chars displayed (enforce this?)
                 }
             }
 
@@ -96,6 +97,10 @@
 
         let recordedInputs = "";  // Stores the clicked characters
         let recordedTimes = "";   // Stores the timestamps
+        
+        lastClickTime = 0;
+        firstClick = true;
+        latencies = []; // will get stored for each response object
 
         document.addEventListener('DOMContentLoaded', function () {
             const boxes = document.querySelectorAll('.digit-box, .letter-box');
@@ -111,7 +116,17 @@
                         // Append to the recorded strings, separating entries with commas
                         recordedInputs += (recordedInputs ? "," : "") + character;
                         recordedTimes += (recordedTimes ? "," : "") + timestamp;
-
+                        
+                        if(firstClick){ // might need change...takes time since stimuli ended to now
+                            firstClick = false;
+                            diff = Date.now() - inputStartTime;
+                        } else {
+                            diff = Date.now() - lastClickTime;
+                        }
+                        lastClickTime = Date.now();
+                        latencies.push(diff / 1000); // ms -> seconds
+                        
+                        
                         setTimeout(() => {
                             this.classList.remove('clicked');
                         }, 100);  // Wait for 100ms
@@ -121,7 +136,8 @@
 
             document.getElementById("nextButton").addEventListener("click", function () {
                 console.log("Recorded Inputs:", recordedInputs);
-                console.log("Recorded Times:", recordedTimes);
+                //console.log("Recorded Times:", recordedTimes);
+                console.log("latencies: ", latencies);
 
                 recordedInputs = "";
                 recordedTimes = "";
@@ -129,7 +145,7 @@
                 currChar = 0;
 
                 if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
-                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/");
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/"); // does not allow going back in browser history
                 }
             });
         });

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Complete</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'initialStyle.css' %}">
+    <link rel="stylesheet" href="{% static 'testStartEnd.css' %}">
 </head>
 
 <body>
@@ -58,9 +58,9 @@
 
     <button id="startTest">Proceed</button>
     <script>
-        let url = "http://127.0.0.1:8000/PPST/testStart/" + testId;
+        let url = "http://127.0.0.1:8000/PPST/testScreen/" + "{{ testId }}";
         document.getElementById("startTest").addEventListener("click", function () {
-            window.location.replace(url);
+            window.location.replace(url); // does not allow going back in browser history
         });
     </script>
 
