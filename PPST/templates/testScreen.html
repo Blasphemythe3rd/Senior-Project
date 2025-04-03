@@ -162,10 +162,6 @@
             document.getElementById("nextButton").addEventListener("click", function () {
                 
                 nextButton.style.display = "none"; // Hide button after clicking it. 
-                
-               
-
-                ///////////////////////
 
                 // Create the data object that you want to send to the server
                 const data = {
@@ -192,8 +188,7 @@
                         console.error('Error:', error);           // Log any error
                     });
 
-                ///////////////////////
-
+                    //clear variables
                 recordedInputs = "";
                 latencies = [];
                 lastClickTime = 0;

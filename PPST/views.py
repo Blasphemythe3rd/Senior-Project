@@ -60,6 +60,8 @@ def save_response(request):
         return JsonResponse({"message": "Response saved successfully."}, status=200)
 
     return JsonResponse({"message": "Invalid request method."}, status=400)
+
+
 def testScreen(request, testId):
     # Check if the testId exists in the database
     test_exists = Test.objects.filter(test_id=testId).exists()
