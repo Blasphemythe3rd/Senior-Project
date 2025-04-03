@@ -13,9 +13,7 @@ urlpatterns = [
     path("testInfo/", views.testInfo, name="testInfo"),
     path("download_test/<str:test_id>/", views.download_test, name="download_test"),
     
-    ##possibly outdated urls
-    path('next/', views.next_page, name="next_page"),    
-    # path('testScreen/', views.testScreen, name="testScreen"), 
+
     
     ## Final Url-Path for Patients
     path('testScreen/<str:testId>/', views.testScreen, name="testScreen"),    

@@ -59,6 +59,7 @@ def doctorHomePage(request, username):
         'notifications': notifications,
         'selected_doctor_id': selected_doctor_id,
         'doctor': selected_doctor  # Pass the doctor object here
+    })
 
 def testScreen(request, testId):
     # Check if the testId exists in the database
