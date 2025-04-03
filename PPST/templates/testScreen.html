@@ -49,6 +49,27 @@
     <button id="nextButton">Next</button>
     
     <script>
+        const stimuliTTS = new SpeechSynthesisUtterance();
+        let savedLang = localStorage.getItem('selectedLanguage');
+        
+        if(savedLang === 'es') {
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'es-US'; // set to spanish
+        } else if(savedLang === 'en') { 
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'en-US'; // set to english 
+        } else if(savedLang === 'fr') { 
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'fr-FR'; // set to english 
+        } else if(savedLang === 'de') { 
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'de-DE'; // set to english 
+        }
+
         let selectedString = ""; // Stores clicked values
 
         // Get the given_stimuli string dynamically from the Django context
@@ -82,6 +103,8 @@
                 currGivenStim = currentStimString;
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
+                    stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex); // sets text to be spoken to stimuli
+                    window.speechSynthesis.speak(stimuliTTS);
                     currChar += 1;
                 } else {
                     inputDisplay.textContent = " ";
