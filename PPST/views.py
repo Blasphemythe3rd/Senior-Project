@@ -1,6 +1,5 @@
-import tempfile
 from django.shortcuts import render, redirect
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse, HttpResponseNotFound
 from django.views.decorators.http import require_GET, require_POST
 from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli, Notification
 from django.core.mail import send_mail
@@ -11,19 +10,52 @@ from django.contrib.auth import authenticate, login, get_user, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
+import tempfile
 import logging
 import json
 import csv
 import tempfile
-import pandas as pd
 import json
-from django.utils.crypto import get_random_string
+import random
+
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-import random
-from django.shortcuts import render
+@csrf_exempt  # Use csrf_exempt if you're not using CSRF tokens, though it's recommended to use CSRF tokens in production
+def save_response(request):
+    if request.method == 'POST':
+        # Parse the incoming JSON data from the request
+        data = json.loads(request.body)
+
+        # Extract variables from the request data
+        test_id = data.get('test_id')
+        given_stimuli = data.get('given_stimuli')
+        response = data.get('response')
+        response_per_click = data.get('response_per_click')
+        enum_type = data.get('enum_type')
+
+        # Retrieve the related 'Test' object using the test_id
+        test = Test.objects.get(test_id=test_id)
+
+        # Retrieve the related 'Given_Stimuli' object (you can adjust the logic here to match how you want to match stimuli)
+        given = Given_Stimuli.objects.get(given_stimuli=given_stimuli)
+
+        # Save the response data to the Stimuli_Response model
+        stimuli_response = Stimuli_Response(
+            test=test,
+            given=given,
+            response=response,
+            response_per_click=response_per_click,
+            enum_type=enum_type
+        )
+        stimuli_response.save()
+
+        return JsonResponse({"message": "Response saved successfully."}, status=200)
+
+    return JsonResponse({"message": "Invalid request method."}, status=400)
 
 
 # Store tokens temporarily (use a database model for production)
@@ -39,7 +71,7 @@ def testScreen(request):
     return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
 
 
-from django.http import HttpResponseNotFound
+
 
 def doctorHomePage(request, username):
     doctors = Doctor.objects.first()
@@ -74,11 +106,16 @@ def testScreen(request, testId):
     # Retrieve all stimuli objects
     stimuli_objects = Given_Stimuli.objects.all()
     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+    stimuli_enum = [stimulus.enum_type for stimulus in stimuli_objects]
+
+    # gs = list(Given_Stimuli.objects.all())
+    # stimuli = gs[0]
 
     return render(request, 'testScreen.html', {
         'stimuli_list': stimuli_list,
         'test_id': test_instance,
-        'stimuli_objects': stimuli_objects
+        'stimuli_objects': stimuli_objects,
+        'stimuli_enum': stimuli_enum
     })
 
 def test(request):
@@ -436,6 +473,15 @@ def average_statistics(request):
         'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
 
+
+def testComplete(request):
+    return render(request, "testComplete.html", {})
+
+def testStart(request, testId):
+    return render(request, "testStart.html", {
+        'testId' : testId
+    })
+
 def forgot_password(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -485,3 +531,4 @@ def reset_password(request):
         else:
             messages.error(request, 'Session expired. Please try again.')
     return render(request, 'reset_password.html')
+

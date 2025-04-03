@@ -12,11 +12,14 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path("testInfo/", views.testInfo, name="testInfo"),
     path("download_test/<str:test_id>/", views.download_test, name="download_test"),
-    
 
-    
+    path('save_response/', views.save_response, name='save_response'),
+
+
     ## Final Url-Path for Patients
-    path('testScreen/<str:testId>/', views.testScreen, name="testScreen"),    
+    path('testScreen/<str:testId>/', views.testScreen, name="testScreen"), 
+    path('testStart/<str:testId>/', views.testStart, name="testStart"), 
+    path('testComplete/', views.testComplete, name="testComplete"), 
     path("admin/", views.admin_page, name="admin"),  
     path("admin/list_doctors/", views.list_doctors, name="list_doctors"),
     path("admin/add_doctor/", views.add_doctor, name="add_doctor"),
