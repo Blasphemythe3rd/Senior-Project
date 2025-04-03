@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.http import FileResponse
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, get_user
+from django.contrib.auth import authenticate, login, get_user, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
@@ -17,21 +17,48 @@ import csv
 import tempfile
 import pandas as pd
 import json
+from django.utils.crypto import get_random_string
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-
 import random
 from django.shortcuts import render
 
-def next_page(request, selected_values):
-    if request.method == "POST":
-        selected_values = request.POST.get('selected_values', '')
-        return render(request, 'next_page.html', {'selected_values': selected_values})
-    return render(request, 'next_page.html')
+
+# Store tokens temporarily (use a database model for production)
+reset_tokens = {}
+
+def practiceTest(request):
+    return render(request,'practiceTest.html')
+
+def testScreen(request):
+    stimuli_objects = Given_Stimuli.objects.all()
+    stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+
+    return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
+
 
 from django.http import HttpResponseNotFound
+
+def doctorHomePage(request, username):
+    doctors = Doctor.objects.first()
+    selected_doctor_id = request.GET.get('doctor')
+
+    try:
+        # Fetch the doctor by username
+        selected_doctor = Doctor.objects.get(username=username)
+        # Fetch notifications for the selected doctor
+        notifications = Notification.objects.filter(users=selected_doctor)
+    except Doctor.DoesNotExist:
+        # If the doctor does not exist, raise a 404 error
+        raise Http404("Doctor not found")
+
+    return render(request, 'doctorHomePage.html', {
+        'doctors': doctors,
+        'notifications': notifications,
+        'selected_doctor_id': selected_doctor_id,
+        'doctor': selected_doctor  # Pass the doctor object here
 
 def testScreen(request, testId):
     # Check if the testId exists in the database
@@ -94,8 +121,8 @@ def generateTest(request): #this does nothing right now its just so link kinda w
 
 def doctor_login(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -103,8 +130,13 @@ def doctor_login(request):
         else:
             # Invalid login
             messages.error(request, 'Invalid username or password')
+            return render(request, 'doctorLoginInitial.html')  # Ensure a response is returned
     else:
         return render(request, 'doctorLoginInitial.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('PPST:doctor_login')
 
 def testInfo(request):
     QUESTIONS_PER_TEST = 14
@@ -402,3 +434,53 @@ def average_statistics(request):
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
         'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
+
+def forgot_password(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        try:
+            user = User.objects.get(username=username)
+            token = get_random_string(length=6, allowed_chars='0123456789')
+            reset_tokens[username] = token
+            send_mail(
+                'Password Reset Code',
+                f'Your password reset code is: {token}',
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
+            return redirect('PPST:reset_password_token')
+        except User.DoesNotExist:
+            messages.error(request, 'Username not found.')
+    return render(request, 'forgot_password.html')
+
+def reset_password_token(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        token = request.POST.get('token')
+        if reset_tokens.get(username) == token:
+            request.session['reset_username'] = username  # Store username in session for the next step
+            return redirect('PPST:reset_password')
+        else:
+            messages.error(request, 'Invalid token or username.')
+    return render(request, 'reset_password_token.html')
+
+
+def reset_password(request):
+    if request.method == 'POST':
+        username = request.session.get('reset_username')  # Retrieve username from session
+        new_password = request.POST.get('new_password')
+        if username:
+            try:
+                user = User.objects.get(username=username)
+                user.set_password(new_password)
+                user.save()
+                del reset_tokens[username]  # Remove the token after successful reset
+                request.session.pop('reset_username')  # Clear session data
+                messages.success(request, 'Password reset successfully.')
+                return redirect('PPST:doctor_login')
+            except User.DoesNotExist:
+                messages.error(request, 'Invalid username.')
+        else:
+            messages.error(request, 'Session expired. Please try again.')
+    return render(request, 'reset_password.html')
