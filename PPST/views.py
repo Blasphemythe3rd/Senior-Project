@@ -412,7 +412,7 @@ def testComplete(request):
     return render(request, "testComplete.html", {})
 
 def testStart(request, testId):
-    return render(request, "testStart.html", {
+    return render(request, "instructions.html", {
         'testId' : testId
     })
     
