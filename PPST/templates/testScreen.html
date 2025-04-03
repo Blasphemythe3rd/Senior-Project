@@ -55,7 +55,7 @@
 
         const consTest = JSON.parse(document.getElementById('stimuli-data').textContent);
 
-        console.log("Stimuli Objects:", consTest);
+
 
         document.addEventListener('DOMContentLoaded', function () {
             const inputDisplay = document.getElementById('input-display');
@@ -93,6 +93,7 @@
             setTimeout(() => {
                 clearInterval(interval.length);  // Stop the interval after all stimuli have been displayed
             }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
+
         });
 
         let recordedInputs = "";  // Stores the clicked characters
@@ -149,8 +150,8 @@
                 }
             });
         });
-    </script>
 
+    </script>
 
 </body>
 

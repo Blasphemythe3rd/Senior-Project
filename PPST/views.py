@@ -15,7 +15,6 @@ import logging
 import json
 import csv
 import tempfile
-import pandas as pd
 import json
 
 logger = logging.getLogger(__name__)
@@ -46,6 +45,7 @@ def testScreen(request, testId):
     # Retrieve all stimuli objects
     stimuli_objects = Given_Stimuli.objects.all()
     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+    stimuli_enum = [stimulus.enum_type for stimulus in stimuli_objects]
 
     # gs = list(Given_Stimuli.objects.all())
     # stimuli = gs[0]
@@ -53,7 +53,8 @@ def testScreen(request, testId):
     return render(request, 'testScreen.html', {
         'stimuli_list': stimuli_list,
         'test_id': test_instance,
-        'stimuli_objects': stimuli_objects
+        'stimuli_objects': stimuli_objects,
+        'stimuli_enum': stimuli_enum
     })
 
 def test(request):
