@@ -152,7 +152,7 @@ gs4 = Given_Stimuli(given_stimuli="74862", correct_order="24678", enum_type="5di
 gs4.save()
 gs5 = Given_Stimuli(given_stimuli="35826", correct_order="23568", enum_type="5digit")
 gs5.save()
-gs6 = Given_Stimuli(given_stimuli="46715", correct_order="14567", enum_type="5digit")
+gs6 = Given_Stimuli(given_stimuli="46735", correct_order="34567", enum_type="5digit")
 gs6.save()
 gs7 = Given_Stimuli(given_stimuli="4927", correct_order="2479", enum_type="4digit")
 gs7.save()

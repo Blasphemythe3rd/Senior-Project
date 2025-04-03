@@ -104,7 +104,7 @@ def createTest(request):
             new_test = Test.objects.create(patient_age=patient_age, doctor=doctor) #create a new test object
             
             subject = "Test Link for PPST"
-            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
+            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/testStart/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
             
             send_mail(subject, message, settings.EMAIL_HOST_USER, [recipient_email])
 
@@ -416,7 +416,7 @@ def testStart(request, testId):
         'testId' : testId
     })
     
-def settings(request, testId):
+def setting(request, testId):
     return render(request, "settings.html", {
         'testId' : testId
     })

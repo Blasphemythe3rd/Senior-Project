@@ -49,10 +49,25 @@
 
     <script>
         const stimuliTTS = new SpeechSynthesisUtterance();
-        var voices = window.speechSynthesis.getVoices(); 
-        stimuliTTS.voice = voices.find(voice => voice.name === ''); 
-        stimuliTTS.lang = 'es-US'; // set to english for now will be options to change later
-        stimuliTTS.rate = 1; // rate of speech
+        let savedLang = localStorage.getItem('selectedLanguage');
+        
+        if(savedLang === 'es') {
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'es-US'; // set to spanish
+        } else if(savedLang === 'en') { 
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'en-US'; // set to english 
+        } else if(savedLang === 'fr') { 
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'fr-FR'; // set to english 
+        } else if(savedLang === 'de') { 
+            var voices = window.speechSynthesis.getVoices(); 
+            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+            stimuliTTS.lang = 'de-DE'; // set to english 
+        }
 
         let selectedString = ""; // Stores clicked values
 

@@ -18,7 +18,8 @@ urlpatterns = [
     
     ## Final Url-Path for Patients
     path('testScreen/<str:testId>/', views.testScreen, name="testScreen"), 
-    path('testStart/<str:testId>/', views.testStart, name="testStart"), 
+    path('testStart/<str:testId>/', views.testStart, name="testStart"),
+    path('settings/<str:testId>/', views.setting, name="settings"), 
     path('testComplete/', views.testComplete, name="testComplete"), 
     path("admin/", views.admin_page, name="admin"),  
     path("admin/list_doctors/", views.list_doctors, name="list_doctors"),

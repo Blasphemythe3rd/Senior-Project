@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cognitive Sequencing Test - Instructions</title>
+    <title>Philadelphia Pointing Span Test - Instructions</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'instructions.css' %}">
 </head>
@@ -62,7 +62,7 @@
                 </div>
 
                 <script>
-                    let url = "http://127.0.0.1:8000/PPST/testScreen/" + "{{ testId }}";
+                    let url = "http://127.0.0.1:8000/PPST/settings/" + "{{ testId }}";
                     document.getElementById("startTest").addEventListener("click", function () {
                         window.location.replace(url); // does not allow going back in browser history
                     });
