@@ -9,13 +9,13 @@ urlpatterns = [
     path("ppstcreate/", views.ppstCreate, name="ppstCreate"),
     path("test/<str:testId>", views.test, name="test"),
     path('login/', views.doctor_login, name='doctor_login'),
+    path('logout/', views.logout_view, name='logout'),
     path("testInfo/", views.testInfo, name="testInfo"),
     path("download_test/<str:test_id>/", views.download_test, name="download_test"),
+
     path('save_response/', views.save_response, name='save_response'),
 
-    ## possibly outdated urls
-    ## path('testScreen/', views.testScreen, name="testScreen"), 
-    
+
     ## Final Url-Path for Patients
     path('testScreen/<str:testId>/', views.testScreen, name="testScreen"), 
     path('testStart/<str:testId>/', views.testStart, name="testStart"), 
@@ -28,4 +28,8 @@ urlpatterns = [
     path('admin/login/', views.admin_login, name='admin_login'),
     path('doctorHomePage/', views.doctorHomePage, name="doctorHomePage"),
     path("average_statistics/", views.average_statistics, name="average_statistics"),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
+    path('reset-password-token/', views.reset_password_token, name='reset_password_token'),
+    path('reset-password/', views.reset_password, name='reset_password'),
 ]

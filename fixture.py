@@ -11,7 +11,7 @@ from django.utils.timezone import now
 #---------------------------------------------------------------------------
 try:
     # creates the doctors based off the doctors_data
-    d0 = Doctor(username="doctor0", email="alice.smith@hospital.com", first_name="Alice", last_name="Smith")
+    d0 = Doctor(username="doctor0", email="alice.smith@gmail.com", first_name="Alice", last_name="Smith")
     d0.set_password("SecurePass123")
     d0.save()
     d1 = Doctor(username="doctor1", email="bob.jones@hospital.com", first_name="Bob", last_name="Jones")
@@ -803,19 +803,19 @@ sr13_4 = Stimuli_Response(
 )
 sr13_4.save()
 
-n0 = Notification(status=0,message='Patient has completed their test!')
+n0 = Notification(status=0,message=f'Test Id: {t0.test_id} is completed!')
 n0.save()
 n0.users.add(doctors[0])
-n1 = Notification(status=1,message='Patient has completed their test!')
+n1 = Notification(status=1,message=f'Test Id: {t1.test_id} is completed!')
 n1.save()
 n1.users.add(doctors[0])
-n2 = Notification(status=0,message='Patient has completed their test!')
+n2 = Notification(status=0,message=f'Test Id: {t2.test_id} is completed!')
 n2.save()
 n2.users.add(doctors[1])
-n3 = Notification(status=0,message='Patient has completed their test!')
+n3 = Notification(status=0,message=f'Test Id: {t3.test_id} is completed!')
 n3.save()
 n3.users.add(doctors[2])
-n4 = Notification(status=0,message='Patient has completed their test!')
+n4 = Notification(status=0,message=f'Test Id: {t4.test_id} is completed!')
 n4.save()
 n4.users.add(doctors[3])
 n5 = Notification(status=0,message='Something different')
