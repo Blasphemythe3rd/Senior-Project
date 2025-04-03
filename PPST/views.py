@@ -1,5 +1,6 @@
+import tempfile
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli, Notification
 from django.core.mail import send_mail
@@ -24,6 +25,7 @@ logging.basicConfig(level=logging.INFO)
 import random
 from django.shortcuts import render
 
+
 # Store tokens temporarily (use a database model for production)
 reset_tokens = {}
 
@@ -36,9 +38,8 @@ def testScreen(request):
 
     return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
 
-def test(request):
-    return HttpResponse("Hello World!")
 
+from django.http import HttpResponseNotFound
 
 def doctorHomePage(request, username):
     doctors = Doctor.objects.first()
@@ -58,7 +59,29 @@ def doctorHomePage(request, username):
         'notifications': notifications,
         'selected_doctor_id': selected_doctor_id,
         'doctor': selected_doctor  # Pass the doctor object here
+
+def testScreen(request, testId):
+    # Check if the testId exists in the database
+    test_exists = Test.objects.filter(test_id=testId).exists()
+
+    if not test_exists:
+        return HttpResponseNotFound("Test ID not found. Please contact your doctor.")  # Return a 404 response if test_id is invalid
+
+    # Fetch the valid test object
+    test_instance = Test.objects.get(test_id=testId)
+
+    # Retrieve all stimuli objects
+    stimuli_objects = Given_Stimuli.objects.all()
+    stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+
+    return render(request, 'testScreen.html', {
+        'stimuli_list': stimuli_list,
+        'test_id': test_instance,
+        'stimuli_objects': stimuli_objects
     })
+
+def test(request):
+    return HttpResponse("Hello World!")
   
 @require_POST
 def createTest(request):
@@ -251,7 +274,14 @@ def list_doctors(request):
 def fetch_test_details(request, test_id):
     try:
         test = Test.objects.get(test_id=test_id)
-        stimuli_responses = Stimuli_Response.objects.filter(test=test).values("enum_type", "response", "response_per_click", "given__given_stimuli", "given__correct_order")
+        stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
+            "enum_type", 
+            "response", 
+            "response_per_click", 
+            "given__given_stimuli", 
+            "given__correct_order"
+        )
+
         return JsonResponse({
             "test_id": test.test_id,
             "time_started": test.time_started,
@@ -269,15 +299,28 @@ def doctor_tests(request, doctor_id):
         doctor = Doctor.objects.get(id=doctor_id)
         tests = Test.objects.filter(doctor=doctor)
         
+        # Map status codes to human-readable strings
+        status_mapping = {
+            0: "Not Started",
+            1: "In Progress",
+            2: "Completed"
+        }
+        
         test_details = []
         for test in tests:
-            stimuli_responses = Stimuli_Response.objects.filter(test=test).values("enum_type", "response", "response_per_click", "given__given_stimuli", "given__correct_order")
+            stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
+                "enum_type", 
+                "response", 
+                "response_per_click", 
+                "given__given_stimuli", 
+                "given__correct_order"
+            )
             
             test_details.append({
                 "test_id": test.test_id,
-                "time_started": test.time_started,
-                "time_ended": test.time_ended,
-                "status": test.status,
+                "time_started": test.time_started.strftime('%m/%d/%Y, %H:%M:%S') if test.time_started else None,
+                "time_ended": test.time_ended.strftime('%m/%d/%Y, %H:%M:%S') if test.time_ended else None,
+                "status": status_mapping.get(test.status, "Unknown"),  # Map status to human-readable string
                 "patient_age": test.patient_age,
                 "stimuli_responses": list(stimuli_responses)
             })
@@ -289,7 +332,7 @@ def doctor_tests(request, doctor_id):
     except Doctor.DoesNotExist:
         return JsonResponse({"error": "Doctor not found"}, status=404)
     
-@csrf_exempt
+    
 @require_POST
 def add_doctor(request):
     """Adds a new doctor, ensuring a unique username in 'doctor#' format."""
@@ -322,8 +365,13 @@ def add_doctor(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
 def doctorHomePage(request):
-    return render(request, 'doctorHomePage.html')
+    doctor = request.user
+
+    notifications = Notification.objects.filter(users=doctor)
+    
+    return render(request, 'doctorHomePage.html', {'notifications': notifications})
 
 def average_statistics(request):
     # Fetch all test data
