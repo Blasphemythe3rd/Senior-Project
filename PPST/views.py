@@ -1,6 +1,6 @@
 import tempfile
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli, Notification
 from django.core.mail import send_mail
@@ -35,7 +35,7 @@ from django.http import HttpResponseNotFound
 def testScreen(request, testId):
     # Check if the testId exists in the database
     test_exists = Test.objects.filter(test_id=testId).exists()
-    
+
     if not test_exists:
         return HttpResponseNotFound("Test ID not found. Please contact your doctor.")  # Return a 404 response if test_id is invalid
 
@@ -47,25 +47,30 @@ def testScreen(request, testId):
     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
     stimuli_enum = [stimulus.enum_type for stimulus in stimuli_objects]
 
+    # gs = list(Given_Stimuli.objects.all())
+    # stimuli = gs[0]
+
     return render(request, 'testScreen.html', {
         'stimuli_list': stimuli_list,
         'test_id': test_instance,
         'stimuli_objects': stimuli_objects,
         'stimuli_enum': stimuli_enum
     })
+
 def test(request):
     return HttpResponse("Hello World!")
 
 
-def doctorHomePage(request, username):
+def doctorHomePage(request):
 
-    doctors = Doctor.objects.first()
-
-    selected_doctor_id = request.GET.get('doctor')
+    doctors = Doctor.objects.first() # gets all doctors ??
+    selected_doctor = get_user(request)
+    selected_doctor_id = selected_doctor.username
+    #selected_doctor_id = request.GET.get('doctor')
 
     try:
         # Fetch the doctor by username
-        selected_doctor = Doctor.objects.get(username=username)
+        # selected_doctor = Doctor.objects.get(username=username)
         # Fetch notifications for the selected doctor
         notifications = Notification.objects.filter(users=selected_doctor)
     except Doctor.DoesNotExist:
@@ -337,8 +342,8 @@ def add_doctor(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-def doctorHomePage(request):
-    return render(request, 'doctorHomePage.html')
+# def doctorHomePage(request):
+#     return render(request, 'doctorHomePage.html')
 
 def average_statistics(request):
     # Fetch all test data
@@ -400,4 +405,12 @@ def average_statistics(request):
         'values': json.dumps(list(age_data.values())),
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
         'accuracy_values': json.dumps(list(accuracy_data.values()))
+    })
+
+def testComplete(request):
+    return render(request, "testComplete.html", {})
+
+def testStart(request, testId):
+    return render(request, "testStart.html", {
+        'testId' : testId
     })

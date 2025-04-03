@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Complete</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'testStartEnd.css' %}">
+</head>
+
+<body>
+
+    <h1>
+        Test Instructions
+    </h1>
+
+    <h2>
+        Task Overview
+    </h2>
+    <div>
+        You will see sequences of numbers or a mix of numbers and letters
+    </div>
+
+    <div>
+        Ordering Rules:
+        <ul>
+            <li>Order the numbers in ascending order (smallest to largest)</li>
+            <li>When shown a mix of numbers and letters, the sequence should begin with numbers ascending then letters
+                alphabetically</li>
+        </ul>
+    </div>
+
+    <h2>Examples:</h2>
+    <div>
+        Numbers only:
+
+        Given: 9 3 7 2
+        Correct order: 2 3 7 9
+    </div>
+
+    <div>
+        Mix of numbers and letters:
+
+        Given: F 2 R S
+        Correct order: 2 5 F R
+    </div>
+
+    <h2>Test Format</h2>
+    <div>
+        Ordering Rules:
+        <ul>
+            <li>The test has 12 sequences with 2 practice trials first.</li>
+            <li>Click symbols in the correct order to respond</li>
+            <li>Audio & Visual feedback will be provided to help guide you.</li>
+        </ul>
+    </div>
+
+    <button id="startTest">Proceed</button>
+    <script>
+        let url = "http://127.0.0.1:8000/PPST/testScreen/" + "{{ testId }}";
+        document.getElementById("startTest").addEventListener("click", function () {
+            window.location.replace(url); // does not allow going back in browser history
+        });
+    </script>
+
+</body>
+
+</html>

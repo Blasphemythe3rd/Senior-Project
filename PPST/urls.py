@@ -14,11 +14,12 @@ urlpatterns = [
     
     ##possibly outdated urls
     path('next/', views.next_page, name="next_page"),    
-    path('testScreen/', views.testScreen, name="testScreen"), 
+    # path('testScreen/', views.testScreen, name="testScreen"), 
     
     ## Final Url-Path for Patients
-    path('<str:testId>/', views.testScreen, name="patientTest"),       
-    path('testScreen/', views.testScreen, name="testScreen"),    
+    path('testScreen/<str:testId>/', views.testScreen, name="testScreen"), 
+    path('testStart/<str:testId>/', views.testStart, name="testStart"), 
+    path('testComplete/', views.testComplete, name="testComplete"), 
     path("admin/", views.admin_page, name="admin"),  
     path("admin/list_doctors/", views.list_doctors, name="list_doctors"),
     path("admin/add_doctor/", views.add_doctor, name="add_doctor"),

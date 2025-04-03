@@ -1,0 +1,11 @@
+body { 
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: normal;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+/* same body format as log in */

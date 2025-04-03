@@ -1,151 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sample Page</title>
+    <title>PPST Test</title>
     {% load static %}
     <link rel="stylesheet" href=" {% static 'initialStyle.css' %}">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <style>
-    
+
     </style>
 </head>
+
 <body>
     <div class="banner">
         <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
     </div>
-        <div class="box" id="input-display"></div>
-        <div class="container">
-            <div class="digit-box">2</div>
-            <div class="digit-box">3</div>
-            <div class="digit-box">4</div>
-            <div class="digit-box">5</div>
-        </div>
-        <div class="container">
-            <div class="digit-box">6</div>
-            <div class="digit-box">7</div>
-            <div class="digit-box">8</div>
-            <div class="digit-box">9</div>
-        </div>
-        <div class="container">
-            <div class="letter-box">A</div>
-            <div class="letter-box">F</div>
-            <div class="letter-box">H</div>
-            <div class="letter-box">N</div>
-        </div>
-        <div class="container">
-            <div class="letter-box">Q</div>
-            <div class="letter-box">R</div>
-            <div class="letter-box">X</div>
-            <div class="letter-box">Y</div>
-        </div>
-        
-    
+    <div class="box" id="input-display"></div>
+    <div class="container">
+        <div class="digit-box">2</div>
+        <div class="digit-box">3</div>
+        <div class="digit-box">4</div>
+        <div class="digit-box">5</div>
+    </div>
+    <div class="container">
+        <div class="digit-box">6</div>
+        <div class="digit-box">7</div>
+        <div class="digit-box">8</div>
+        <div class="digit-box">9</div>
+    </div>
+    <div class="container">
+        <div class="letter-box">A</div>
+        <div class="letter-box">F</div>
+        <div class="letter-box">H</div>
+        <div class="letter-box">N</div>
+    </div>
+    <div class="container">
+        <div class="letter-box">Q</div>
+        <div class="letter-box">R</div>
+        <div class="letter-box">X</div>
+        <div class="letter-box">Y</div>
+    </div>
+    <!-- converts django list to js readable json format -->
+    {{ stimuli_list|json_script:"stimuli-data" }}
 
-        <script>
+    <button id="nextButton">Next</button>
+
+    <script>
         let selectedString = ""; // Stores clicked values
 
         // Get the given_stimuli string dynamically from the Django context
-        const givenStimuli = "{{ stimuli_list|safe }}";  // This is where Django passes the value
-        const stimuliEnum = "{{ stimuli_enum|safe }}";
-        displayStim = givenStimuli; 
+        const givenStimuli = JSON.parse(document.getElementById('stimuli-data').textContent); // strings need to be in js format
 
-        console.log("First Stimulus:", displayStim);  // Debugging
-
-        console.log("Stimuli Objects:", givenStimuli);
-
-        console.log("Enum Types:", stimuliEnum);
+        const consTest = JSON.parse(document.getElementById('stimuli-data').textContent);
 
 
 
-        document.addEventListener('DOMContentLoaded', function() {
-            let displayLoopIndex = 1;  // Keeps track of the current index of given_stimuli.
+        document.addEventListener('DOMContentLoaded', function () {
             const inputDisplay = document.getElementById('input-display');
-            
-            function loopDisplayStimulus() {
-
-
-
-            }
 
             // Function to display the next character in the stimuli
-            function loopLetterStimulus() {
-                if (displayLoopIndex < displayStim.length) {
-                    
-                    inputDisplay.textContent = displayStim[displayLoopIndex];
-                    displayLoopIndex+=1;
-                    if (displayLoopIndex == displayStim.length){
-                        inputDisplay.textContent = " ";
-                    }
+            currChar = 0;
+            currStimuli = 0;
+            function showNextStimulus(charIndex, stimIndex) {
+                if (currStimuli >= givenStimuli.length) {
+                    return;
+                }
+
+                //console.log(currChar, currStimuli)
+                //console.log(givenStimuli[stimIndex], givenStimuli[stimIndex].charAt(charIndex))
+                const currentStimString = givenStimuli[stimIndex];
+                if (currChar < currentStimString.length) {
+                    inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
+                    currChar += 1;
+                } else {
+                    inputDisplay.textContent = "Input Now";
+                    inputStartTime = Date.now(); // saves time for first latency -- users can't start clicking until all chars displayed (enforce this?)
                 }
             }
 
-            // Start showing the stimuli one by one
-            loopLetterStimulus();
+            // Start showing the characters one by one
+            showNextStimulus(currChar, currStimuli);
 
-            // Trigger the next stimulus display every second (you can adjust the timing)
-            const interval = setInterval(loopLetterStimulus, 1000);  // 1000ms = 1 second
+            // Trigger the next stimulus display every second
+            const interval = setInterval(() => {
+                showNextStimulus(currChar, currStimuli);
+            }, 1000);
+
 
             // Stop the display when all characters have been shown
             setTimeout(() => {
-                clearInterval(interval);  // Stop the interval after all stimuli have been displayed
-            }, displayStim.length * 1000);  // Stop after all characters have been displayed
+                clearInterval(interval.length);  // Stop the interval after all stimuli have been displayed
+            }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
 
         });
 
-    </script>
+        let recordedInputs = "";  // Stores the clicked characters
+        let recordedTimes = "";   // Stores the timestamps
+        
+        lastClickTime = 0;
+        firstClick = true;
+        latencies = []; // will get stored for each response object
 
-<button id="nextButton">Next</button>
+        document.addEventListener('DOMContentLoaded', function () {
+            const boxes = document.querySelectorAll('.digit-box, .letter-box');
 
-<script>
-    let recordedInputs = "";  // Stores the clicked characters
-    let recordedTimes = "";   // Stores the timestamps
+            boxes.forEach(box => {
+                box.addEventListener('click', function () {
+                    if (!this.classList.contains('clicked')) {
+                        this.classList.add('clicked');
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const boxes = document.querySelectorAll('.digit-box, .letter-box');
+                        let character = this.textContent.trim();  // Get the clicked character
+                        let timestamp = new Date().toISOString(); // Get timestamp in ISO format
 
-        boxes.forEach(box => {
-            box.addEventListener('click', function() {
-                if (!this.classList.contains('clicked')) {
-                    this.classList.add('clicked');
+                        // Append to the recorded strings, separating entries with commas
+                        recordedInputs += (recordedInputs ? "," : "") + character;
+                        recordedTimes += (recordedTimes ? "," : "") + timestamp;
+                        
+                        if(firstClick){ // might need change...takes time since stimuli ended to now
+                            firstClick = false;
+                            diff = Date.now() - inputStartTime;
+                        } else {
+                            diff = Date.now() - lastClickTime;
+                        }
+                        lastClickTime = Date.now();
+                        latencies.push(diff / 1000); // ms -> seconds
+                        
+                        
+                        setTimeout(() => {
+                            this.classList.remove('clicked');
+                        }, 100);  // Wait for 100ms
+                    }
+                });
+            });
 
-                    let character = this.textContent.trim();  // Get the clicked character
-                    let timestamp = new Date().toISOString(); // Get timestamp in ISO format
+            document.getElementById("nextButton").addEventListener("click", function () {
+                console.log("Recorded Inputs:", recordedInputs);
+                //console.log("Recorded Times:", recordedTimes);
+                console.log("latencies: ", latencies);
 
-                    // Append to the recorded strings, separating entries with commas
-                    recordedInputs += (recordedInputs ? "," : "") + character;
-                    recordedTimes += (recordedTimes ? "," : "") + timestamp;
+                recordedInputs = "";
+                recordedTimes = "";
+                currStimuli += 1;
+                currChar = 0;
 
-                    setTimeout(() => {
-                        this.classList.remove('clicked');
-                    }, 100);  // Wait for 100ms
+                if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/"); // does not allow going back in browser history
                 }
             });
         });
 
-        document.getElementById("nextButton").addEventListener("click", function() {
-            
-
-            //return the times to the test database
-            let timestamp = new Date().toISOString(); // Get timestamp in ISO format
-
-            recordedInputs += (recordedInputs ? "," : "") + "Next Button";
-            recordedTimes += (recordedTimes ? "," : "") + timestamp;
-
-            console.log("Recorded Inputs:", recordedInputs);
-            console.log("Recorded Times:", recordedTimes);
-
-            //reset recorded for new test.
-            recordedInputs = "";
-            recordedTimes = "";
-
-            // display the next stimuli
-
-
-        });
-    });
-</script>
-
+    </script>
 
 </body>
+
 </html>
