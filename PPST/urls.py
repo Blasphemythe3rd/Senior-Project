@@ -12,6 +12,10 @@ urlpatterns = [
     path("testInfo/", views.testInfo, name="testInfo"),
     path("download_test/<str:test_id>/", views.download_test, name="download_test"),
     
+    ## this is the url for the test completed notification
+
+    path("notification/", views.create_notification_test_completed, name="create_notification_test_completed"), 
+
     ##possibly outdated urls
     path('next/', views.next_page, name="next_page"),    
     # path('testScreen/', views.testScreen, name="testScreen"), 
@@ -26,4 +30,6 @@ urlpatterns = [
     path('admin/login/', views.admin_login, name='admin_login'),
     path('doctorHomePage/', views.doctorHomePage, name="doctorHomePage"),
     path("average_statistics/", views.average_statistics, name="average_statistics"),
+
+  
 ]

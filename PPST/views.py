@@ -382,3 +382,56 @@ def average_statistics(request):
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
         'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
+
+def create_notification_test_completed(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            # Extract user_id and test_id from the request data
+            user_id = data.get('user_id')
+            test_id = data.get('test_id')
+
+            if not user_id or not test_id:
+                return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            
+            try:
+                 test = Test.objects.get(test_id=test_id)
+
+            except Test.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Test matching query does not exist.'})
+
+            if not test.time_ended:
+                return JsonResponse({'success': False, 'error': 'Test has not been completed yet.'})
+
+            # Determines if null or not
+            test_completion = Stimuli_Response.objects.filter(test=test).values("test__time_ended")
+
+            if not test_completion.exists():
+                return JsonResponse({'success': False, 'error': 'Test completion time not found.'})
+
+            # Fetches the first test completion time
+            test_time = test_completion.first().get("test__time_ended")
+
+            # Notification message
+            message = f"Test Id {test.test_id} has been completed at {test_time}."
+
+            # Fetches the user to recieve the notification
+            user = User.objects.get(id=user_id)
+
+            # Fetch doctor associated with test
+            doctor = test.doctor 
+
+            #Creates the notification object
+            notification = Notification.objects.create(message=message)
+
+            notification.users.add(doctor) # add the notification to the users list of notifications
+
+            return JsonResponse({'success': True, 'notification_id': notification.id})
+
+        except Exception as e:
+            # error response incase of exception
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    #Checks if not POST
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
