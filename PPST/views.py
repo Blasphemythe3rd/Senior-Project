@@ -635,7 +635,8 @@ def average_statistics(request):
         'labels': json.dumps(list(age_data.keys())),
         'values': json.dumps(list(age_data.values())),
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
-        'accuracy_values': json.dumps(list(accuracy_data.values()))
+        'accuracy_values': json.dumps(list(accuracy_data.values())),
+        'stimulus_accuracy': json.dumps(stimulus_accuracy_avg)
     })
 
 def create_notification_test_completed(request):
