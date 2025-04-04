@@ -14,6 +14,7 @@ from django.utils.crypto import get_random_string
 import tempfile
 import logging
 import json
+from django.db.models import Avg
 import csv
 import tempfile
 import json
@@ -300,9 +301,103 @@ def admin_login(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 def admin_page(request):
-    doctors = Doctor.objects.all()  
-    return render(request, "admin.html", {"doctors": doctors})
+    try:
+        # Fetch all tests
+        tests = Test.objects.all()
 
+        # Default values if no tests exist
+        total_tests = tests.count()
+        average_patient_age = tests.aggregate(Avg('patient_age'))['patient_age__avg'] or 0
+        total_accuracy = 0
+        total_responses = 0
+
+        # Calculate overall accuracy
+        for test in tests:
+            stimuli_responses = Stimuli_Response.objects.filter(test=test)
+            for response in stimuli_responses:
+                if response.response and response.given and response.given.given_stimuli:
+                    total_responses += 1
+                    if str(response.response) == str(response.given.given_stimuli):  # Ensure both are strings for comparison
+                        total_accuracy += 1
+
+        average_accuracy = (total_accuracy / total_responses * 100) if total_responses > 0 else 0
+
+        # Fetch age distribution and accuracy data
+        age_data = { "0-9": 0, "10-19": 0, "20-29": 0, "30-39": 0, "40-49": 0,
+                     "50-59": 0, "60-69": 0, "70-79": 0, "80-89": 0, "90+": 0 }
+        accuracy_data = {key: 0 for key in age_data.keys()}  # Initialize accuracy as 0
+
+        if tests.exists():
+            # Convert to DataFrame
+            df = pd.DataFrame({'patient_age': list(tests.values_list('patient_age', flat=True))})
+
+            # Define age bins and labels
+            bins = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, float('inf')]
+            labels = ["0-9", "10-19", "20-29", "30-39", "40-49", 
+                      "50-59", "60-69", "70-79", "80-89", "90+"]
+
+            # Categorize ages into bins
+            df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
+
+            # Count occurrences in each group
+            age_data = df['age_group'].value_counts().sort_index().to_dict()
+
+            # Initialize accuracy tracking
+            accuracy_data = {key: [] for key in labels}  
+
+            # Fetch all responses and match them to the correct answers
+            responses = Stimuli_Response.objects.select_related('given')
+
+            for response in responses:
+                correct = response.given.correct_order.strip()
+                user_response = response.response.strip()
+
+                if len(correct) == len(user_response) and len(correct) > 0:
+                    # Calculate exact character match percentage
+                    match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
+                    accuracy_percentage = (match_count / len(correct)) * 100
+                else:
+                    accuracy_percentage = 0  # If lengths don't match, assume 0% accuracy
+
+                # Get the corresponding test age and categorize it
+                age = response.test.patient_age
+                age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
+
+                if age_group in accuracy_data:
+                    accuracy_data[age_group].append(accuracy_percentage)
+
+            # Compute average accuracy for each age group
+            for key in accuracy_data.keys():
+                if accuracy_data[key]:  # Avoid division by zero
+                    accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
+                else:
+                    accuracy_data[key] = 0  # If no data, default to 0%
+
+        # Pass data to the template
+        doctors = Doctor.objects.all()
+        return render(request, "admin.html", {
+            "doctors": doctors,
+            "total_tests": total_tests,
+            "average_patient_age": average_patient_age,
+            "average_accuracy": f"{average_accuracy:.2f}",
+            "age_labels": json.dumps(list(age_data.keys())),
+            "age_values": json.dumps(list(age_data.values())),
+            "accuracy_labels": json.dumps(list(accuracy_data.keys())),
+            "accuracy_values": json.dumps(list(accuracy_data.values())),
+        })
+
+    except Exception as e:
+        return render(request, "admin.html", {
+            "error": f"An error occurred: {str(e)}",
+            "doctors": [],
+            "total_tests": 0,
+            "average_patient_age": 0,
+            "average_accuracy": 0,
+            "age_labels": json.dumps([]),
+            "age_values": json.dumps([]),
+            "accuracy_labels": json.dumps([]),
+            "accuracy_values": json.dumps([]),
+        })
 @require_GET
 def list_doctors(request):
     doctors = Doctor.objects.all().values("id", "first_name", "last_name", "email", "username")
@@ -370,10 +465,9 @@ def doctor_tests(request, doctor_id):
     except Doctor.DoesNotExist:
         return JsonResponse({"error": "Doctor not found"}, status=404)
     
-    
-@require_POST
+@csrf_exempt
 def add_doctor(request):
-    """Adds a new doctor, ensuring a unique username in 'doctor#' format."""
+    """Adds a new doctor, ensuring a unique username in 'doctor#' format and sends login credentials via email."""
     try:
         data = json.loads(request.body)
         first_name = data.get("first_name")
@@ -383,6 +477,7 @@ def add_doctor(request):
         if not (first_name and last_name and email):
             return JsonResponse({"error": "Missing fields"}, status=400)
 
+        # Generate a unique username in "doctor#" format
         doctor_count = 0
         while True:
             username = f"doctor{doctor_count}"
@@ -391,17 +486,84 @@ def add_doctor(request):
             doctor_count += 1
 
         new_doctor = Doctor.objects.create(username=username, first_name=first_name, last_name=last_name, email=email)
-        new_doctor.set_password("defaultpassword123")  
+        default_password = "defaultpassword123"
+        new_doctor.set_password(default_password)
         new_doctor.save()
 
+        # Prepare email content
+        subject = "Your Doctor Account Credentials"
+        message = (
+            f"Hello {first_name},\n\n"
+            f"Your account has been created successfully.\n\n"
+            f"Username: {username}\n"
+            f"Password: {default_password}\n\n"
+            f"Please change your password after logging in."
+        )
+
+        # Attempt to send email
+        try:
+            send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+            email_status = "Email sent successfully!"
+        except Exception:
+            email_status = "Email doesn't exist."
+
         return JsonResponse({
-            "message": "Doctor added successfully!",
+            "message": f"Doctor added successfully! {email_status}",
             "doctor_id": new_doctor.id,
             "username": username
         })
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
+@require_GET
+def overall_average_statistics(request):
+    try:
+        # Fetch all tests (or apply any filter if needed)
+        tests = Test.objects.all()
+
+        if not tests:
+            return render(request, "admin.html", {
+                "total_tests": 0,
+                "average_patient_age": 0,
+                "average_accuracy": 0,
+            })
+
+        total_tests = tests.count()
+
+        # Calculate overall average patient age
+        average_patient_age = tests.aggregate(Avg('patient_age'))['patient_age__avg']
+
+        # Calculate overall average accuracy (example based on response data)
+        total_accuracy = 0
+        total_responses = 0
+
+        # Loop through tests to accumulate accuracy data
+        for test in tests:
+            stimuli_responses = Stimuli_Response.objects.filter(test=test)
+            for response in stimuli_responses:
+                total_responses += 1
+                # Compare the response with given stimuli or correct order (whichever is applicable)
+                if response.response == response.given.given_stimuli:  # Assuming given_stimuli holds the correct answer
+                    total_accuracy += 1
+
+        # Calculate overall accuracy (percentage)
+        average_accuracy = (total_accuracy / total_responses * 100) if total_responses > 0 else 0
+
+        # Render the admin.html template with the calculated data
+        return render(request, "admin.html", {
+            "total_tests": total_tests,
+            "average_patient_age": average_patient_age,
+            "average_accuracy": f"{average_accuracy:.2f}",
+        })
+
+    except Exception as e:
+        return render(request, "admin.html", {
+            "error": f"An error occurred: {str(e)}",
+            "total_tests": 0,
+            "average_patient_age": 0,
+            "average_accuracy": 0,
+        })
 
 
 def doctorHomePage(request):
@@ -474,142 +636,3 @@ def average_statistics(request):
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
         'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
-
-def create_notification_test_completed(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-
-            # Extract user_id and test_id from the request data
-            user_id = data.get('user_id')
-            test_id = data.get('test_id')
-
-            if not user_id or not test_id:
-                return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-            
-            try:
-                 test = Test.objects.get(test_id=test_id)
-
-            except Test.DoesNotExist:
-                return JsonResponse({'success': False, 'error': 'Test matching query does not exist.'})
-
-            if not test.time_ended:
-                return JsonResponse({'success': False, 'error': 'Test has not been completed yet.'})
-
-            # Determines if null or not
-            test_completion = Stimuli_Response.objects.filter(test=test).values("test__time_ended")
-
-            if not test_completion.exists():
-                return JsonResponse({'success': False, 'error': 'Test completion time not found.'})
-
-            # Fetches the first test completion time
-            test_time = test_completion.first().get("test__time_ended")
-
-            # Notification message
-            message = f"Test Id {test.test_id} has been completed at {test_time}."
-
-            # Fetches the user to recieve the notification
-            user = User.objects.get(id=user_id)
-
-            # Fetch doctor associated with test
-            doctor = test.doctor 
-
-            #Creates the notification object
-            notification = Notification.objects.create(message=message)
-
-            notification.users.add(doctor) # add the notification to the users list of notifications
-
-            return JsonResponse({'success': True, 'notification_id': notification.id})
-
-        except Exception as e:
-            # error response incase of exception
-            return JsonResponse({'success': False, 'error': str(e)})
-
-    #Checks if not POST
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
-def testComplete(request, testId):
-    # get current date time
-    now = datetime.now()
-    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
-
-    test_instance = Test.objects.get(test_id=testId)
-    
-    test_instance.status = 2
-    test_instance.time_ended = current_datetime # gives console warning, but formats date correctly
-
-    Test.save(test_instance)
-
-    return render(request, "testComplete.html", {})
-
-def testStart(request, testId):
-    now = datetime.now()
-    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
-
-    test_instance = Test.objects.get(test_id=testId)
-    
-    test_instance.status = 1
-    test_instance.time_started = current_datetime
-
-    Test.save(test_instance)
-    
-    return render(request, "instructions.html", {
-        'testId' : testId
-    })
-    
-def setting(request, testId):
-    return render(request, "settings.html", {
-        'testId' : testId
-    })
-
-def forgot_password(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        try:
-            user = User.objects.get(username=username)
-            token = get_random_string(length=6, allowed_chars='0123456789')
-            reset_tokens[username] = token
-            send_mail(
-                'Password Reset Code',
-                f'Your password reset code is: {token}',
-                settings.EMAIL_HOST_USER,
-                [user.email],
-                fail_silently=False,
-            )
-            return redirect('PPST:reset_password_token')
-        except User.DoesNotExist:
-            messages.error(request, 'Username not found.')
-    return render(request, 'forgot_password.html')
-
-def reset_password_token(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        token = request.POST.get('token')
-        if reset_tokens.get(username) == token:
-            request.session['reset_username'] = username  # Store username in session for the next step
-            return redirect('PPST:reset_password')
-        else:
-            messages.error(request, 'Invalid token or username.')
-    return render(request, 'reset_password_token.html')
-
-
-def reset_password(request):
-    if request.method == 'POST':
-        username = request.session.get('reset_username')  # Retrieve username from session
-        new_password = request.POST.get('new_password')
-        if username:
-            try:
-                user = User.objects.get(username=username)
-                user.set_password(new_password)
-                user.save()
-                del reset_tokens[username]  # Remove the token after successful reset
-                request.session.pop('reset_username')  # Clear session data
-                messages.success(request, 'Password reset successfully.')
-                return redirect('PPST:doctor_login')
-            except User.DoesNotExist:
-                messages.error(request, 'Invalid username.')
-        else:
-            messages.error(request, 'Session expired. Please try again.')
-    return render(request, 'reset_password.html')
-
-
