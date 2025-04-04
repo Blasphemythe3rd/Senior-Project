@@ -11,7 +11,7 @@ from django.utils.timezone import now
 #---------------------------------------------------------------------------
 try:
     # creates the doctors based off the doctors_data
-    d0 = Doctor(username="doctor0", email="alice.smith@hospital.com", first_name="Alice", last_name="Smith")
+    d0 = Doctor(username="doctor0", email="alice.smith@gmail.com", first_name="Alice", last_name="Smith")
     d0.set_password("SecurePass123")
     d0.save()
     d1 = Doctor(username="doctor1", email="bob.jones@hospital.com", first_name="Bob", last_name="Jones")
@@ -152,7 +152,7 @@ gs4 = Given_Stimuli(given_stimuli="74862", correct_order="24678", enum_type="5di
 gs4.save()
 gs5 = Given_Stimuli(given_stimuli="35826", correct_order="23568", enum_type="5digit")
 gs5.save()
-gs6 = Given_Stimuli(given_stimuli="46715", correct_order="14567", enum_type="5digit")
+gs6 = Given_Stimuli(given_stimuli="46735", correct_order="34567", enum_type="5digit")
 gs6.save()
 gs7 = Given_Stimuli(given_stimuli="4927", correct_order="2479", enum_type="4digit")
 gs7.save()
