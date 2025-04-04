@@ -16,10 +16,6 @@ urlpatterns = [
     ## this is the url for the test completed notification
 
     path("notification/", views.create_notification_test_completed, name="create_notification_test_completed"), 
-
-    ##possibly outdated urls
-    path('next/', views.next_page, name="next_page"),    
-    # path('testScreen/', views.testScreen, name="testScreen"), 
     
     path('save_response/', views.save_response, name='save_response'),
 
