@@ -19,6 +19,7 @@ import tempfile
 import json
 import pandas as pd
 import random
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -63,14 +64,11 @@ reset_tokens = {}
 def practiceTest(request):
     return render(request,'practiceTest.html')
 
-def testScreen(request):
-    stimuli_objects = Given_Stimuli.objects.all()
-    stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+# def testScreen(request):
+#     stimuli_objects = Given_Stimuli.objects.all()
+#     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
 
-    return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
-
-
-
+#     return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
 
 def doctorHomePage(request, username):
     doctors = Doctor.objects.first()
@@ -112,7 +110,7 @@ def testScreen(request, testId):
 
     return render(request, 'testScreen.html', {
         'stimuli_list': stimuli_list,
-        'test_id': test_instance,
+        'test_id': test_instance.test_id,
         'stimuli_objects': stimuli_objects,
         'stimuli_enum': stimuli_enum
     })
@@ -138,7 +136,7 @@ def createTest(request):
             new_test = Test.objects.create(patient_age=patient_age, doctor=doctor) #create a new test object
             
             subject = "Test Link for PPST"
-            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/testStart/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
+            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/settings/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
             
             send_mail(subject, message, settings.EMAIL_HOST_USER, [recipient_email])
 
@@ -176,7 +174,6 @@ def logout_view(request):
     return redirect('PPST:doctor_login')
 
 def testInfo(request):
-    QUESTIONS_PER_TEST = 14
     percentages = []
     notEmpty = False
 
@@ -217,8 +214,12 @@ def download_test(request, test_id):
         stimulus_num += 1
 
         spreadsheet.append(dict)
-
-    avg_response = sum(response_times)/len(response_times)
+    
+    try: # prevents divide for debugging
+        avg_response = sum(response_times)/len(response_times)
+    except:
+        avg_response = 0
+    
     test_info = { # overall test info
             "Test ID": test.test_id,
             "Time Start": test.time_started,
@@ -473,10 +474,31 @@ def average_statistics(request):
     })
 
 
-def testComplete(request):
+def testComplete(request, testId):
+    # get current date time
+    now = datetime.now()
+    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    test_instance = Test.objects.get(test_id=testId)
+    
+    test_instance.status = 2
+    test_instance.time_ended = current_datetime # gives console warning, but formats date correctly
+
+    Test.save(test_instance)
+
     return render(request, "testComplete.html", {})
 
 def testStart(request, testId):
+    now = datetime.now()
+    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    test_instance = Test.objects.get(test_id=testId)
+    
+    test_instance.status = 1
+    test_instance.time_started = current_datetime
+
+    Test.save(test_instance)
+    
     return render(request, "instructions.html", {
         'testId' : testId
     })

@@ -79,8 +79,11 @@
 
         const nextButton = document.getElementById("nextButton");
         
-        nextButton.style.display = "none"; // Hide button
-       
+        debugMode = false; // change for 'production'...so i dont have to wait for the test 
+
+        if(!debugMode){
+            nextButton.style.display = "none"; // Hide button
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const inputDisplay = document.getElementById('input-display');
@@ -183,12 +186,14 @@
 
             
             document.getElementById("nextButton").addEventListener("click", function () {
-                
-                nextButton.style.display = "none"; // Hide button after clicking it. 
+                if(!debugMode){
+                    nextButton.style.display = "none"; // Hide button after clicking it. 
+                }
 
                 // Create the data object that you want to send to the server
                 const data = {
-                    test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
+                    //test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
+                    test_id : "{{ test_id }}",
                     given_stimuli: givenStimuli[currStimuli],        // Get current stimuli string
                     response: recordedInputs,                        // The user’s response
                     response_per_click: latencies,                   // The latencies array
@@ -223,7 +228,7 @@
                 temp=0;
 
                 if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
-                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/"); // does not allow going back in browser history
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}"); // does not allow going back in browser history
                 }
             });
         
