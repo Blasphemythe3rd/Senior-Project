@@ -1,32 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cognitive Sequencing Test - Instructions</title>
-    <link rel="stylesheet" href="instructions.css">
+    <title>Philadelphia Pointing Span Test - Instructions</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'instructions.css' %}">
 </head>
+
 <body>
     <main class="container">
         <div class="card">
             <div class="header">
                 <h1>Test Instructions</h1>
             </div>
-            
+
             <div class="content">
                 <h2>Task Overview</h2>
                 <p>
                     You will see sequences of numbers or a mix of numbers and letters.
                 </p>
-                
+
                 <div class="info-box">
                     <h3>Ordering Rules:</h3>
                     <ul>
-                        <li>Order the numbers in <span class="emphasis">ascending order</span> (smallest to largest).</li>
-                        <li>When shown a mix of numbers and letters, the sequence should begin with <span class="emphasis">numbers ascending</span> then <span class="emphasis">letters alphabetically</span>.</li>
+                        <li>Order the numbers in <span class="emphasis">ascending order</span> (smallest to largest).
+                        </li>
+                        <li>When shown a mix of numbers and letters, the sequence should begin with <span
+                                class="emphasis">numbers ascending</span> then <span class="emphasis">letters
+                                alphabetically</span>.</li>
                     </ul>
                 </div>
-                
+
                 <div class="info-box">
                     <h3>Examples:</h3>
                     <div class="examples">
@@ -42,20 +48,28 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <h2>Test Format</h2>
                 <ul>
                     <li>The test has 12 sequences with 2 practice trials first.</li>
                     <li>Click symbols in the correct order to respond.</li>
                     <li>Audio & Visual feedback will be provided to help guide you.</li>
                 </ul>
-                
-            
-            <div class="actions">
-                <a class="button">Move to settings</a>
+
+
+                <div class="actions">
+                    <button id="startTest">Proceed</button>
+                </div>
+
+                <script>
+                    let url = "http://127.0.0.1:8000/PPST/testScreen/" + "{{ testId }}";
+                    document.getElementById("startTest").addEventListener("click", function () {
+                        window.location.replace(url); // does not allow going back in browser history
+                    });
+                </script>
             </div>
-        </div>
-        
+
     </main>
 </body>
+
 </html>

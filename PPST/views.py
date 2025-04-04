@@ -17,9 +17,9 @@ import json
 import csv
 import tempfile
 import json
+import pandas as pd
 import random
-
-
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -64,14 +64,11 @@ reset_tokens = {}
 def practiceTest(request):
     return render(request,'practiceTest.html')
 
-def testScreen(request):
-    stimuli_objects = Given_Stimuli.objects.all()
-    stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+# def testScreen(request):
+#     stimuli_objects = Given_Stimuli.objects.all()
+#     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
 
-    return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
-
-
-
+#     return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
 
 def doctorHomePage(request, username):
     doctors = Doctor.objects.first()
@@ -113,7 +110,7 @@ def testScreen(request, testId):
 
     return render(request, 'testScreen.html', {
         'stimuli_list': stimuli_list,
-        'test_id': test_instance,
+        'test_id': test_instance.test_id,
         'stimuli_objects': stimuli_objects,
         'stimuli_enum': stimuli_enum
     })
@@ -139,7 +136,7 @@ def createTest(request):
             new_test = Test.objects.create(patient_age=patient_age, doctor=doctor) #create a new test object
             
             subject = "Test Link for PPST"
-            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
+            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/settings/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
             
             send_mail(subject, message, settings.EMAIL_HOST_USER, [recipient_email])
 
@@ -177,7 +174,6 @@ def logout_view(request):
     return redirect('PPST:doctor_login')
 
 def testInfo(request):
-    QUESTIONS_PER_TEST = 14
     percentages = []
     notEmpty = False
 
@@ -218,8 +214,12 @@ def download_test(request, test_id):
         stimulus_num += 1
 
         spreadsheet.append(dict)
-
-    avg_response = sum(response_times)/len(response_times)
+    
+    try: # prevents divide for debugging
+        avg_response = sum(response_times)/len(response_times)
+    except:
+        avg_response = 0
+    
     test_info = { # overall test info
             "Test ID": test.test_id,
             "Time Start": test.time_started,
@@ -412,60 +412,62 @@ def doctorHomePage(request):
     return render(request, 'doctorHomePage.html', {'notifications': notifications})
 
 def average_statistics(request):
-    # Fetch all test data
     tests = Test.objects.values_list('patient_age', flat=True)
 
     if not tests:
-        age_data = { "0-9": 0, "10-19": 0, "20-29": 0, "30-39": 0, "40-49": 0,
-                     "50-59": 0, "60-69": 0, "70-79": 0, "80-89": 0, "90+": 0 }
-        accuracy_data = {key: 0 for key in age_data.keys()}  # Initialize accuracy as 0
+        age_data = { "30-39": 0, "40-49": 0, "50-59": 0, "60-69": 0,
+                     "70-79": 0, "80-89": 0, "90-99": 0, "100+":0 }
+        accuracy_data = {key: 0 for key in age_data.keys()}
+        stimulus_accuracy_avg = {} ##
     else:
-        # Convert to DataFrame
         df = pd.DataFrame({'patient_age': tests})
-
-        # Define age bins and labels
-        bins = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, float('inf')]
-        labels = ["0-9", "10-19", "20-29", "30-39", "40-49", 
-                  "50-59", "60-69", "70-79", "80-89", "90+"]
-
-        # Categorize ages into bins
+        bins = [30, 39, 49, 59, 69, 79, 89, 99, float('inf')]
+        labels = ["30-39", "40-49", "50-59", "60-69", 
+                  "70-79", "80-89", "90-99", "100+"]
         df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
 
-        # Count occurrences in each group
         age_data = df['age_group'].value_counts().sort_index().to_dict()
 
-        # Initialize accuracy tracking
         accuracy_data = {key: [] for key in labels}  
 
-        # Fetch all responses and match them to the correct answers
+        stimulus_accuracy = {stimulus.id: {label: [] for label in labels} 
+                            for stimulus in Given_Stimuli.objects.all()} ##
+
         responses = Stimuli_Response.objects.select_related('given')
 
         for response in responses:
             correct = response.given.correct_order.strip()
             user_response = response.response.strip()
+            stimulus_id = response.given.id
 
-            if len(correct) == len(user_response) and len(correct) > 0:
-                # Calculate exact character match percentage
-                match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
-                accuracy_percentage = (match_count / len(correct)) * 100
-            else:
-                accuracy_percentage = 0  # If lengths don't match, assume 0% accuracy
+            match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
+            accuracy_percentage = (match_count / len(correct)) * 100
 
-            # Get the corresponding test age and categorize it
             age = response.test.patient_age
             age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
+
+            if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
+                stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)##
 
             if age_group in accuracy_data:
                 accuracy_data[age_group].append(accuracy_percentage)
 
-        # Compute average accuracy for each age group
+        stimulus_accuracy_avg = {
+            stim_id: {
+                age_group: (
+                    sum(values) / len(values) if values else 0
+                )
+                for age_group, values in age_dict.items()
+            }
+            for stim_id, age_dict in stimulus_accuracy.items()
+        }##
+
         for key in accuracy_data.keys():
-            if accuracy_data[key]:  # Avoid division by zero
+            if accuracy_data[key]:
                 accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
             else:
-                accuracy_data[key] = 0  # If no data, default to 0%
+                accuracy_data[key] = 0
 
-    # Convert data to JSON for the frontend
     return render(request, 'average_statistics.html', {
         'labels': json.dumps(list(age_data.keys())),
         'values': json.dumps(list(age_data.values())),
@@ -473,12 +475,90 @@ def average_statistics(request):
         'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
 
+def create_notification_test_completed(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
 
-def testComplete(request):
+            # Extract user_id and test_id from the request data
+            user_id = data.get('user_id')
+            test_id = data.get('test_id')
+
+            if not user_id or not test_id:
+                return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            
+            try:
+                 test = Test.objects.get(test_id=test_id)
+
+            except Test.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Test matching query does not exist.'})
+
+            if not test.time_ended:
+                return JsonResponse({'success': False, 'error': 'Test has not been completed yet.'})
+
+            # Determines if null or not
+            test_completion = Stimuli_Response.objects.filter(test=test).values("test__time_ended")
+
+            if not test_completion.exists():
+                return JsonResponse({'success': False, 'error': 'Test completion time not found.'})
+
+            # Fetches the first test completion time
+            test_time = test_completion.first().get("test__time_ended")
+
+            # Notification message
+            message = f"Test Id {test.test_id} has been completed at {test_time}."
+
+            # Fetches the user to recieve the notification
+            user = User.objects.get(id=user_id)
+
+            # Fetch doctor associated with test
+            doctor = test.doctor 
+
+            #Creates the notification object
+            notification = Notification.objects.create(message=message)
+
+            notification.users.add(doctor) # add the notification to the users list of notifications
+
+            return JsonResponse({'success': True, 'notification_id': notification.id})
+
+        except Exception as e:
+            # error response incase of exception
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    #Checks if not POST
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+def testComplete(request, testId):
+    # get current date time
+    now = datetime.now()
+    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    test_instance = Test.objects.get(test_id=testId)
+    
+    test_instance.status = 2
+    test_instance.time_ended = current_datetime # gives console warning, but formats date correctly
+
+    Test.save(test_instance)
+
     return render(request, "testComplete.html", {})
 
 def testStart(request, testId):
-    return render(request, "testStart.html", {
+    now = datetime.now()
+    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    test_instance = Test.objects.get(test_id=testId)
+    
+    test_instance.status = 1
+    test_instance.time_started = current_datetime
+
+    Test.save(test_instance)
+    
+    return render(request, "instructions.html", {
+        'testId' : testId
+    })
+    
+def setting(request, testId):
+    return render(request, "settings.html", {
         'testId' : testId
     })
 
@@ -531,4 +611,5 @@ def reset_password(request):
         else:
             messages.error(request, 'Session expired. Please try again.')
     return render(request, 'reset_password.html')
+
 

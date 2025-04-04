@@ -14,6 +14,15 @@
 </head>
 
 <body>
+    {% comment %} <script>   --- for changing font, does not work
+        fontSize = localStorage.getItem('fontSize');
+        console.log(fontSize);
+        const digitBoxes = document.getElementsByClassName('digit-box');
+
+        for (let i = 0; i < digitBoxes.length; i++) {
+            digitBoxes[i].style.fontSize = fontSize;
+        }
+    </script> {% endcomment %}
     <div class="banner">
         <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
     </div>
@@ -45,10 +54,34 @@
     <!-- converts django list to js readable json format -->
     {{ stimuli_list|json_script:"stimuli-data" }}
     {{ stimuli_enum|json_script:"stimuli-enum" }}
- 
+
     <button id="nextButton">Next</button>
-    
+
     <script>
+        let clickButtonSound = new Audio("{% static 'clickButton.wav' %}")
+        let nextButtonSound = new Audio("{% static 'nextButton.mp3' %}")
+
+        const stimuliTTS = new SpeechSynthesisUtterance();
+        let savedLang = localStorage.getItem('selectedLanguage');
+
+        if (savedLang === 'es') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
+            stimuliTTS.lang = 'es-US'; // set to spanish
+        } else if (savedLang === 'en') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
+            stimuliTTS.lang = 'en-US'; // set to english 
+        } else if (savedLang === 'fr') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
+            stimuliTTS.lang = 'fr-FR'; // set to english 
+        } else if (savedLang === 'de') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
+            stimuliTTS.lang = 'de-DE'; // set to english 
+        }
+
         let selectedString = ""; // Stores clicked values
 
         // Get the given_stimuli string dynamically from the Django context
@@ -57,9 +90,12 @@
         const stimuliEnum = JSON.parse(document.getElementById('stimuli-enum').textContent);
 
         const nextButton = document.getElementById("nextButton");
-        
-        nextButton.style.display = "none"; // Hide button
-       
+
+        debugMode = false; // change for 'production'...so i dont have to wait for the test 
+
+        if (!debugMode) {
+            nextButton.style.display = "none"; // Hide button
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const inputDisplay = document.getElementById('input-display');
@@ -68,7 +104,7 @@
             currChar = 0;
             currStimuli = 0;
             currGivenStim = null;
-            
+
             //Temp varible to fix inputStartTime
             temp = 0;
             function showNextStimulus(charIndex, stimIndex) {
@@ -82,11 +118,13 @@
                 currGivenStim = currentStimString;
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
+                    stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex); // sets text to be spoken to stimuli
+                    window.speechSynthesis.speak(stimuliTTS);
                     currChar += 1;
                 } else {
                     inputDisplay.textContent = " ";
                     nextButton.style.display = "block"; // show button
-                    
+
                     //Temp varible to fix inputStartTime
                     temp += 1;
                     if (temp < 2) {
@@ -100,7 +138,7 @@
 
             // Trigger the next stimulus display every second
             const interval = setInterval(() => {
-                
+
                 showNextStimulus(currChar, currStimuli);
 
             }, 1000);
@@ -114,7 +152,7 @@
         });
 
         let recordedInputs = "";  // Stores the clicked characters
-        
+
         lastClickTime = 0;
         firstClick = true;
         latencies = []; // will get stored for each response object
@@ -126,8 +164,9 @@
             //Settings for each stimuli button ("2, 3, 4, etc..")
             boxes.forEach(box => {
                 box.addEventListener('click', function () {
-                    
-                    if ( nextButton.style.display == "block"){
+                    clickButtonSound.play();
+
+                    if (nextButton.style.display == "block") {
 
                         if (!this.classList.contains('clicked')) {
                             this.classList.add('clicked');
@@ -137,19 +176,19 @@
 
                             // Append to the recorded strings, separating entries with commas
                             recordedInputs += (recordedInputs ? "" : "") + character;
-                        
-                            if(firstClick){ // might need change...takes time since stimuli ended to now
+
+                            if (firstClick) { // might need change...takes time since stimuli ended to now
                                 firstClick = false;
-                                
+
                                 diff = Date.now() - inputStartTime;
-                                
+
                             } else {
                                 diff = Date.now() - lastClickTime;
                             }
                             lastClickTime = Date.now();
                             latencies.push(diff / 1000); // ms -> seconds
-                        
-                        
+
+
                             setTimeout(() => {
                                 this.classList.remove('clicked');
                             }, 100);  // Wait for 100ms
@@ -158,14 +197,18 @@
                 });
             });
 
-            
+
             document.getElementById("nextButton").addEventListener("click", function () {
+                nextButtonSound.play();
                 
-                nextButton.style.display = "none"; // Hide button after clicking it. 
+                if (!debugMode) {
+                    nextButton.style.display = "none"; // Hide button after clicking it. 
+                }
 
                 // Create the data object that you want to send to the server
                 const data = {
-                    test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
+                    //test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
+                    test_id: "{{ test_id }}",
                     given_stimuli: givenStimuli[currStimuli],        // Get current stimuli string
                     response: recordedInputs,                        // The user’s response
                     response_per_click: latencies,                   // The latencies array
@@ -188,7 +231,7 @@
                         console.error('Error:', error);           // Log any error
                     });
 
-                    //clear variables
+                //clear variables
                 recordedInputs = "";
                 latencies = [];
                 lastClickTime = 0;
@@ -197,13 +240,13 @@
                 currChar = 0;
 
                 //Temp varible to fix inputStartTime
-                temp=0;
+                temp = 0;
 
                 if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
-                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/"); // does not allow going back in browser history
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}"); // does not allow going back in browser history
                 }
             });
-        
+
         });
 
     </script>

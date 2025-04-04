@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Philadelphia Pointing Span Test - Settings</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'settings.css' %}">
+</head>
+
+<body>
+    <h1>Settings</h1>
+  
+    <div id="language-button">
+        <button type="button" data-lang="en" class="language-button">English</button>
+        <button type="button" data-lang="es" class="language-button">Spanish</button>
+        <button type="button" data-lang="fr" class="language-button">French</button>
+        <button type="button" data-lang="de" class="language-button">German</button>
+    </div>
+      
+    <div id="content">
+      <p>Sample text to see font sizes.</p>
+    </div>
+  
+    <div id="controls">
+      <button onclick="changeFontSize('small')">Small</button>
+      <button onclick="changeFontSize('medium')">Medium</button>
+      <button onclick="changeFontSize('large')">Large</button>
+      <button onclick="changeFontSize('larger')">Larger</button>
+    </div>
+  
+    <div>
+        <button id="startTest">Proceed</button>
+    </div>
+<script>
+    // saves language to local storage
+    const languageButtons = document.querySelectorAll('.language-button');
+
+    languageButtons.forEach(button => {
+      button.addEventListener('click', function() {
+          languageButtons.forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+          const selectedLanguage = this.getAttribute('data-lang');
+          localStorage.setItem('selectedLanguage', selectedLanguage);
+      });
+    });
+  
+      function changeFontSize(size) {
+        var content = document.getElementById('content');
+        switch (size) {
+          case 'small':
+            content.style.fontSize = '18px';
+            fontSize = '18px';
+            break;
+          case 'medium':
+            content.style.fontSize = '24px';
+            fontSize = '24px';
+            break;
+          case 'large':
+            content.style.fontSize = '28px';
+            fontSize = '28px';
+            break;
+          case 'larger':
+            content.style.fontSize = '30px';
+            fontSize = '30px';
+            break;
+        }
+
+        localStorage.setItem('fontSize', fontSize); // saves to local browser storage
+      }
+  
+      let url = "http://127.0.0.1:8000/PPST/testStart/" + "{{ testId }}";
+      document.getElementById("startTest").addEventListener("click", function () {
+        window.location.replace(url); // does not allow going back in browser history
+      });
+      </script>
+  </body>
+  </html>
