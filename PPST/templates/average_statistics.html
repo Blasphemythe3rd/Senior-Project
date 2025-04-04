@@ -11,26 +11,23 @@
 </head>
 <body>
     <div style="display: flex; gap: 10px; align-items: flex-start;">
-        <div style="width: 50%; max-width: 500px; height: 340px;">
+        <div style="width: 50%; height: 400px;">
             <h2>Test Age Distribution</h2>
-            <canvas id="ageChart"></canvas>
+            <canvas id="ageChart" style="height: 100%; width: 100%;"></canvas>
         </div>
-        <div style="width: 50%; max-width: 500px; height: 340px;">
+        <div style="width: 50%; height: 400px;">
             <h2>Accuracy Percentage by Age Group</h2>
-            <div style="position: relative; height: 100%;">
-                <canvas id="accuracyChart"></canvas>
-            </div>
+            <canvas id="accuracyChart" style="height: 100%; width: 100%;"></canvas>
         </div>
     </div>
-    <h2>Stimulus Accuracy Breakdown</h2>
+    <br>
+    <h2 style="margin-top: 40px;">Stimulus Accuracy Breakdown</h2>
     <div id="charts-container"></div>
 
     <script>
         var labels = JSON.parse('{{ labels|safe }}');
         var values = JSON.parse('{{ values|safe }}');
-        var accuracyLabels = JSON.parse('{{ accuracy_labels|safe }}');
-        var accuracyValues = JSON.parse('{{ accuracy_values|safe }}');
-
+    
         var ctx1 = document.getElementById('ageChart').getContext('2d');
         var ageChart = new Chart(ctx1, {
             type: 'pie',
@@ -40,14 +37,14 @@
                     label: 'Number of Tests per Age Group',
                     data: values,
                     backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(153, 102, 255, 0.6)',
-                    'rgba(255, 159, 64, 0.6)',
-                    'rgba(0, 200, 140, 0.6)',
-                    'rgba(200, 100, 255, 0.6)'
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                        'rgba(0, 200, 140, 0.6)',
+                        'rgba(200, 100, 255, 0.6)'
                     ],
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
@@ -57,7 +54,11 @@
                 responsive: true
             }
         });
-
+    </script>
+    <script>
+        var accuracyLabels = JSON.parse('{{ accuracy_labels|safe }}');
+        var accuracyValues = JSON.parse('{{ accuracy_values|safe }}');
+    
         var ctx2 = document.getElementById('accuracyChart').getContext('2d');
         var accuracyChart = new Chart(ctx2, {
             type: 'bar',
@@ -82,61 +83,73 @@
                 }
             }
         });
-    
+    </script>
+    <style>
+        #charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        #charts-container .chart-container {
+            width: calc(50% - 8px);
+            max-height: 300px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    <script>
         const stimulusAccuracyAvg = JSON.parse('{{ stimulus_accuracy|safe }}');
         console.log(stimulusAccuracyAvg)
+        let stimulusCounter = 1;
+
         Object.keys(stimulusAccuracyAvg).forEach(stim_id => {
-    // Create a new div for each chart
-    const chartDiv = document.createElement('div');
-    chartDiv.classList.add('chart-container');
-    chartDiv.style.marginBottom = '20px';
+            const chartDiv = document.createElement('div');
+            chartDiv.classList.add('chart-container');
+            chartDiv.style.marginBottom = '20px';
 
-    // Create a header for the chart with the stimulus ID
-    const header = document.createElement('h3');
-    header.innerText = `Stimulus ${stim_id} Accuracy by Age Group`;
-    chartDiv.appendChild(header);
+            const header = document.createElement('h3');
+            header.innerText = `Stimulus ${stimulusCounter} Accuracy by Age Group`;
+            chartDiv.appendChild(header);
 
-    // Create a canvas for the chart
-    const canvas = document.createElement('canvas');
-    chartDiv.appendChild(canvas);
+            stimulusCounter++;
 
-    // Append the chart div to the container
-    document.getElementById('charts-container').appendChild(chartDiv);
+            const canvas = document.createElement('canvas');
+            chartDiv.appendChild(canvas);
 
-    // Data for the chart (accuracy per age group)
-    const accuracyData = stimulusAccuracyAvg[stim_id];
-    const chartData = {
-        labels: labels, // Age groups
-        datasets: [{
-            label: 'Accuracy (%)',
-            data: labels.map(age_group => accuracyData[age_group]), // Get the corresponding accuracy for each age group
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-        }]
-    };
+            document.getElementById('charts-container').appendChild(chartDiv);
 
-    // Chart options
-    const options = {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    max: 100, // Set the max value of the y-axis to 100%
-                    stepSize: 10 // Set the step size for the y-axis
+            const accuracyData = stimulusAccuracyAvg[stim_id];
+            const chartData = {
+                labels: labels,
+                datasets: [{
+                    label: 'Accuracy (%)',
+                    data: labels.map(age_group => accuracyData[age_group]),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            };
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            max: 100,
+                            stepSize: 10
+                        }
+                    }
                 }
-            }
-        }
-    };
-
-    // Create the chart for each stimulus
-    new Chart(canvas, {
-        type: 'bar',
-        data: chartData,
-        options: options
-    });
-});
+            };
+            new Chart(canvas, {
+                type: 'bar',
+                data: chartData,
+                options: options
+            });
+        });
     </script>
 
 </body>

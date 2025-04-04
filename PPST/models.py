@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 import random
 import string
 from django.utils import timezone
+from django.dispatch import receiver #
 
 # Create your models here.
 
@@ -39,6 +40,22 @@ class Stimuli_Response(models.Model):
     response_per_click = models.JSONField() #pip install psycopg2
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     given = models.ForeignKey(Given_Stimuli, on_delete=models.CASCADE, null=True, blank=True)
+    def get_age_group(self):
+        age = self.test.patient_age
+        age_group = (age // 10) * 10
+        if age_group == 100:
+            return "100+"
+        return f"{age_group}-{age_group + 9}"
+    def get_accuracy(self):
+        correct_order = self.given.correct_order
+        response_str = self.response
+        correct_matches = sum(1 for i, char in enumerate(response_str) if i < len(correct_order) and char == correct_order[i])
+        accuracy = correct_matches * 100 / len(correct_order if len(correct_order) > 0 else 0)
+        return accuracy
+    def get_avg_latency(self):
+        if not self.response_per_click:
+            return 0
+        return sum(self.response_per_click) / len(self.response_per_click)
     def __str__(self):
         return f"Test {self.test.test_id}; Stimulus {self.given.given_stimuli}"
 
