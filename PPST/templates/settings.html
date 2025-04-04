@@ -51,17 +51,23 @@
         switch (size) {
           case 'small':
             content.style.fontSize = '18px';
+            fontSize = '18px';
             break;
           case 'medium':
             content.style.fontSize = '24px';
+            fontSize = '24px';
             break;
           case 'large':
             content.style.fontSize = '28px';
+            fontSize = '28px';
             break;
           case 'larger':
             content.style.fontSize = '30px';
+            fontSize = '30px';
             break;
         }
+
+        localStorage.setItem('fontSize', fontSize); // saves to local browser storage
       }
   
       let url = "http://127.0.0.1:8000/PPST/testStart/" + "{{ testId }}";
