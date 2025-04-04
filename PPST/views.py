@@ -411,60 +411,62 @@ def doctorHomePage(request):
     return render(request, 'doctorHomePage.html', {'notifications': notifications})
 
 def average_statistics(request):
-    # Fetch all test data
     tests = Test.objects.values_list('patient_age', flat=True)
 
     if not tests:
-        age_data = { "0-9": 0, "10-19": 0, "20-29": 0, "30-39": 0, "40-49": 0,
-                     "50-59": 0, "60-69": 0, "70-79": 0, "80-89": 0, "90+": 0 }
-        accuracy_data = {key: 0 for key in age_data.keys()}  # Initialize accuracy as 0
+        age_data = { "30-39": 0, "40-49": 0, "50-59": 0, "60-69": 0,
+                     "70-79": 0, "80-89": 0, "90-99": 0, "100+":0 }
+        accuracy_data = {key: 0 for key in age_data.keys()}
+        stimulus_accuracy_avg = {} ##
     else:
-        # Convert to DataFrame
         df = pd.DataFrame({'patient_age': tests})
-
-        # Define age bins and labels
-        bins = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, float('inf')]
-        labels = ["0-9", "10-19", "20-29", "30-39", "40-49", 
-                  "50-59", "60-69", "70-79", "80-89", "90+"]
-
-        # Categorize ages into bins
+        bins = [30, 39, 49, 59, 69, 79, 89, 99, float('inf')]
+        labels = ["30-39", "40-49", "50-59", "60-69", 
+                  "70-79", "80-89", "90-99", "100+"]
         df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
 
-        # Count occurrences in each group
         age_data = df['age_group'].value_counts().sort_index().to_dict()
 
-        # Initialize accuracy tracking
         accuracy_data = {key: [] for key in labels}  
 
-        # Fetch all responses and match them to the correct answers
+        stimulus_accuracy = {stimulus.id: {label: [] for label in labels} 
+                            for stimulus in Given_Stimuli.objects.all()} ##
+
         responses = Stimuli_Response.objects.select_related('given')
 
         for response in responses:
             correct = response.given.correct_order.strip()
             user_response = response.response.strip()
+            stimulus_id = response.given.id
 
-            if len(correct) == len(user_response) and len(correct) > 0:
-                # Calculate exact character match percentage
-                match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
-                accuracy_percentage = (match_count / len(correct)) * 100
-            else:
-                accuracy_percentage = 0  # If lengths don't match, assume 0% accuracy
+            match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
+            accuracy_percentage = (match_count / len(correct)) * 100
 
-            # Get the corresponding test age and categorize it
             age = response.test.patient_age
             age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
+
+            if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
+                stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)##
 
             if age_group in accuracy_data:
                 accuracy_data[age_group].append(accuracy_percentage)
 
-        # Compute average accuracy for each age group
+        stimulus_accuracy_avg = {
+            stim_id: {
+                age_group: (
+                    sum(values) / len(values) if values else 0
+                )
+                for age_group, values in age_dict.items()
+            }
+            for stim_id, age_dict in stimulus_accuracy.items()
+        }##
+
         for key in accuracy_data.keys():
-            if accuracy_data[key]:  # Avoid division by zero
+            if accuracy_data[key]:
                 accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
             else:
-                accuracy_data[key] = 0  # If no data, default to 0%
+                accuracy_data[key] = 0
 
-    # Convert data to JSON for the frontend
     return render(request, 'average_statistics.html', {
         'labels': json.dumps(list(age_data.keys())),
         'values': json.dumps(list(age_data.values())),
