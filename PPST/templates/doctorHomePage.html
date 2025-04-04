@@ -6,19 +6,79 @@
 {% block content %}
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{% static 'doctorHomePage.css' %}">
+    </head>
+
+
  <!-- Hero Section-->
  <div class="main">
     <div class="main__container">
         <div class="main__content">
-            <h1>Notifications</h1>
-            <p>Messages YIPPIE</p>
-            <button class="main__btn"><a href="/PPST/doctorHomePage">Open</a></button>
+
+            <h1>Dr. {{ doctor.first_name }} {{ doctor.last_name }} Messages</h1>
+
+            <div class="main__content--notification">
+                <button id="notification__button">Show Notifications</button>
+            </div>
+
+            <textarea id="notification__textbox" style="display:none;" rows="10" cols="50">
+                {% for notification in notifications %}
+                    {{ notification.message }}
+                {% empty %}
+                    <li>No notifications.</li>
+                {% endfor %}
+            </textarea>
+
         </div>
         <div class="main__img--container">
-            <img src="{% static 'Images/Goomba.webp' %}" alt="pic" id="main__img">
+            <img src= "{% static 'images/Goomba.webp' %}" alt="pic" id="main__img">
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        console.log('JavaScript Loaded');
+
+        document.getElementById("notification__button").addEventListener("click", function() {
+            console.log('Notification Button Clicked');
+            const notificationTextbox = document.getElementById("notification__textbox");
+
+            const button = document.getElementById("notification__button");
+
+            if (notificationTextbox.style.display === "none") {
+                console.log('Displaying Notifications');
+                notificationTextbox.style.display = "block";  
+                button.textContent = "Hide Notifications";  
+            } else {
+                console.log('Hiding Notifications');
+                notificationTextbox.style.display = "none";  
+                button.textContent = "Show Notifications";  
+        }
+    })
+    });
+</script>
+
+<script>
+    /*
+    function updateNotifications() {
+    fetch('/notifications/') // URL to your notifications view
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('notification-box').innerHTML = data;
+        });
+}
+
+// Update notifications every 5 seconds (adjust as needed)
+setInterval(updateNotifications, 5000);
+
+// Initial update on page load
+updateNotifications();
+*/
+</script>
 
 </html>
 {% endblock %}

@@ -1,28 +1,64 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse, HttpResponseNotFound
 from django.views.decorators.http import require_GET, require_POST
-from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli
+from PPST.models import Doctor, Test, Stimuli_Response, Given_Stimuli, Notification
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import FileResponse
-from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, get_user, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
+import tempfile
 import logging
 import json
 import csv
 import tempfile
-import pandas as pd
 import json
+import pandas as pd
+import random
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+@csrf_exempt  # Use csrf_exempt if you're not using CSRF tokens, though it's recommended to use CSRF tokens in production
+def save_response(request):
+    if request.method == 'POST':
+        # Parse the incoming JSON data from the request
+        data = json.loads(request.body)
 
-import random
-from django.shortcuts import render
-from .models import Given_Stimuli
+        # Extract variables from the request data
+        test_id = data.get('test_id')
+        given_stimuli = data.get('given_stimuli')
+        response = data.get('response')
+        response_per_click = data.get('response_per_click')
+        enum_type = data.get('enum_type')
+
+        # Retrieve the related 'Test' object using the test_id
+        test = Test.objects.get(test_id=test_id)
+
+        # Retrieve the related 'Given_Stimuli' object (you can adjust the logic here to match how you want to match stimuli)
+        given = Given_Stimuli.objects.get(given_stimuli=given_stimuli)
+
+        # Save the response data to the Stimuli_Response model
+        stimuli_response = Stimuli_Response(
+            test=test,
+            given=given,
+            response=response,
+            response_per_click=response_per_click,
+            enum_type=enum_type
+        )
+        stimuli_response.save()
+
+        return JsonResponse({"message": "Response saved successfully."}, status=200)
+
+    return JsonResponse({"message": "Invalid request method."}, status=400)
+
+
+# Store tokens temporarily (use a database model for production)
+reset_tokens = {}
 
 def practiceTest(request):
     return render(request,'practiceTest.html')
@@ -32,6 +68,54 @@ def testScreen(request):
     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
 
     return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
+
+
+
+
+def doctorHomePage(request, username):
+    doctors = Doctor.objects.first()
+    selected_doctor_id = request.GET.get('doctor')
+
+    try:
+        # Fetch the doctor by username
+        selected_doctor = Doctor.objects.get(username=username)
+        # Fetch notifications for the selected doctor
+        notifications = Notification.objects.filter(users=selected_doctor)
+    except Doctor.DoesNotExist:
+        # If the doctor does not exist, raise a 404 error
+        raise Http404("Doctor not found")
+
+    return render(request, 'doctorHomePage.html', {
+        'doctors': doctors,
+        'notifications': notifications,
+        'selected_doctor_id': selected_doctor_id,
+        'doctor': selected_doctor  # Pass the doctor object here
+    })
+
+def testScreen(request, testId):
+    # Check if the testId exists in the database
+    test_exists = Test.objects.filter(test_id=testId).exists()
+
+    if not test_exists:
+        return HttpResponseNotFound("Test ID not found. Please contact your doctor.")  # Return a 404 response if test_id is invalid
+
+    # Fetch the valid test object
+    test_instance = Test.objects.get(test_id=testId)
+
+    # Retrieve all stimuli objects
+    stimuli_objects = Given_Stimuli.objects.all()
+    stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+    stimuli_enum = [stimulus.enum_type for stimulus in stimuli_objects]
+
+    # gs = list(Given_Stimuli.objects.all())
+    # stimuli = gs[0]
+
+    return render(request, 'testScreen.html', {
+        'stimuli_list': stimuli_list,
+        'test_id': test_instance,
+        'stimuli_objects': stimuli_objects,
+        'stimuli_enum': stimuli_enum
+    })
 
 def test(request):
     return HttpResponse("Hello World!")
@@ -54,7 +138,7 @@ def createTest(request):
             new_test = Test.objects.create(patient_age=patient_age, doctor=doctor) #create a new test object
             
             subject = "Test Link for PPST"
-            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
+            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/testStart/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
             
             send_mail(subject, message, settings.EMAIL_HOST_USER, [recipient_email])
 
@@ -74,24 +158,30 @@ def generateTest(request): #this does nothing right now its just so link kinda w
 
 def doctor_login(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             return redirect('PPST:doctorHomePage')
         else:
             # Invalid login
-            return render(request, 'doctorLoginInitial.html', {'error': 'Invalid username or password'})
+            messages.error(request, 'Invalid username or password')
+            return render(request, 'doctorLoginInitial.html')  # Ensure a response is returned
     else:
         return render(request, 'doctorLoginInitial.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('PPST:doctor_login')
 
 def testInfo(request):
     QUESTIONS_PER_TEST = 14
     percentages = []
     notEmpty = False
 
-    currDoc = Doctor.objects.get(username = "doctor0") # will get the doctor that is signed in (waiting for sign in function)
+    currDoc = get_user(request)
+    #currDoc = Doctor.objects.get(username = "doctor0") # use for debugging
     tests = Test.objects.filter(doctor = currDoc)
 
     for test in tests: # calculate correct response %
@@ -221,7 +311,14 @@ def list_doctors(request):
 def fetch_test_details(request, test_id):
     try:
         test = Test.objects.get(test_id=test_id)
-        stimuli_responses = Stimuli_Response.objects.filter(test=test).values("enum_type", "response", "response_per_click", "given__given_stimuli", "given__correct_order")
+        stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
+            "enum_type", 
+            "response", 
+            "response_per_click", 
+            "given__given_stimuli", 
+            "given__correct_order"
+        )
+
         return JsonResponse({
             "test_id": test.test_id,
             "time_started": test.time_started,
@@ -239,15 +336,28 @@ def doctor_tests(request, doctor_id):
         doctor = Doctor.objects.get(id=doctor_id)
         tests = Test.objects.filter(doctor=doctor)
         
+        # Map status codes to human-readable strings
+        status_mapping = {
+            0: "Not Started",
+            1: "In Progress",
+            2: "Completed"
+        }
+        
         test_details = []
         for test in tests:
-            stimuli_responses = Stimuli_Response.objects.filter(test=test).values("enum_type", "response", "response_per_click", "given__given_stimuli", "given__correct_order")
+            stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
+                "enum_type", 
+                "response", 
+                "response_per_click", 
+                "given__given_stimuli", 
+                "given__correct_order"
+            )
             
             test_details.append({
                 "test_id": test.test_id,
-                "time_started": test.time_started,
-                "time_ended": test.time_ended,
-                "status": test.status,
+                "time_started": test.time_started.strftime('%m/%d/%Y, %H:%M:%S') if test.time_started else None,
+                "time_ended": test.time_ended.strftime('%m/%d/%Y, %H:%M:%S') if test.time_ended else None,
+                "status": status_mapping.get(test.status, "Unknown"),  # Map status to human-readable string
                 "patient_age": test.patient_age,
                 "stimuli_responses": list(stimuli_responses)
             })
@@ -259,7 +369,7 @@ def doctor_tests(request, doctor_id):
     except Doctor.DoesNotExist:
         return JsonResponse({"error": "Doctor not found"}, status=404)
     
-@csrf_exempt
+    
 @require_POST
 def add_doctor(request):
     """Adds a new doctor, ensuring a unique username in 'doctor#' format."""
@@ -292,8 +402,13 @@ def add_doctor(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
 def doctorHomePage(request):
-    return render(request, 'doctorHomePage.html')
+    doctor = request.user
+
+    notifications = Notification.objects.filter(users=doctor)
+    
+    return render(request, 'doctorHomePage.html', {'notifications': notifications})
 
 def average_statistics(request):
     tests = Test.objects.values_list('patient_age', flat=True)
@@ -356,6 +471,123 @@ def average_statistics(request):
         'labels': json.dumps(list(age_data.keys())),
         'values': json.dumps(list(age_data.values())),
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
-        'accuracy_values': json.dumps(list(accuracy_data.values())),
-        'stimulus_accuracy': json.dumps(stimulus_accuracy_avg) #
+        'accuracy_values': json.dumps(list(accuracy_data.values()))
     })
+
+def create_notification_test_completed(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+
+            # Extract user_id and test_id from the request data
+            user_id = data.get('user_id')
+            test_id = data.get('test_id')
+
+            if not user_id or not test_id:
+                return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            
+            try:
+                 test = Test.objects.get(test_id=test_id)
+
+            except Test.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Test matching query does not exist.'})
+
+            if not test.time_ended:
+                return JsonResponse({'success': False, 'error': 'Test has not been completed yet.'})
+
+            # Determines if null or not
+            test_completion = Stimuli_Response.objects.filter(test=test).values("test__time_ended")
+
+            if not test_completion.exists():
+                return JsonResponse({'success': False, 'error': 'Test completion time not found.'})
+
+            # Fetches the first test completion time
+            test_time = test_completion.first().get("test__time_ended")
+
+            # Notification message
+            message = f"Test Id {test.test_id} has been completed at {test_time}."
+
+            # Fetches the user to recieve the notification
+            user = User.objects.get(id=user_id)
+
+            # Fetch doctor associated with test
+            doctor = test.doctor 
+
+            #Creates the notification object
+            notification = Notification.objects.create(message=message)
+
+            notification.users.add(doctor) # add the notification to the users list of notifications
+
+            return JsonResponse({'success': True, 'notification_id': notification.id})
+
+        except Exception as e:
+            # error response incase of exception
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    #Checks if not POST
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+def testComplete(request):
+    return render(request, "testComplete.html", {})
+
+def testStart(request, testId):
+    return render(request, "instructions.html", {
+        'testId' : testId
+    })
+    
+def setting(request, testId):
+    return render(request, "settings.html", {
+        'testId' : testId
+    })
+
+def forgot_password(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        try:
+            user = User.objects.get(username=username)
+            token = get_random_string(length=6, allowed_chars='0123456789')
+            reset_tokens[username] = token
+            send_mail(
+                'Password Reset Code',
+                f'Your password reset code is: {token}',
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
+            return redirect('PPST:reset_password_token')
+        except User.DoesNotExist:
+            messages.error(request, 'Username not found.')
+    return render(request, 'forgot_password.html')
+
+def reset_password_token(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        token = request.POST.get('token')
+        if reset_tokens.get(username) == token:
+            request.session['reset_username'] = username  # Store username in session for the next step
+            return redirect('PPST:reset_password')
+        else:
+            messages.error(request, 'Invalid token or username.')
+    return render(request, 'reset_password_token.html')
+
+
+def reset_password(request):
+    if request.method == 'POST':
+        username = request.session.get('reset_username')  # Retrieve username from session
+        new_password = request.POST.get('new_password')
+        if username:
+            try:
+                user = User.objects.get(username=username)
+                user.set_password(new_password)
+                user.save()
+                del reset_tokens[username]  # Remove the token after successful reset
+                request.session.pop('reset_username')  # Clear session data
+                messages.success(request, 'Password reset successfully.')
+                return redirect('PPST:doctor_login')
+            except User.DoesNotExist:
+                messages.error(request, 'Invalid username.')
+        else:
+            messages.error(request, 'Session expired. Please try again.')
+    return render(request, 'reset_password.html')
+
+

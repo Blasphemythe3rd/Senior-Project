@@ -12,58 +12,98 @@
     <link rel="stylesheet" type="text/css" href="{% static 'createTest.css' %}">
 </head>
 
-<h1> Test Creation </h1>
-
-<h2>
-    Currently Signed in as Doctor : {{ doctor }}
-</h2>
-
 <body>
-    <div>
-        <label for="patient_age">Patient Age:</label>
-        <input type="text" id="age" name="age">    
+    <div class="form-wrapper">
+      <h1> Create Philadelphia Pointing Span Test </h1>
+      <h2> Currently Signed in as Doctor: {{ user.first_name }} {{ user.last_name }} </h2>
+  
+      <form>
+        <div>
+          <label for="patient_age">Patient Age:</label>
+          <input type="text" id="age" name="age">    
+        </div>
+  
+        <div>
+          <label for="patient_email">Patient Email:</label>
+          <input type="text" id="email" name="email">    
+        </div>
+  
+        <button id="sendEmailBtn" type="button">Create Test</button>
+      </form>
     </div>
-
-    <div>
-        <label for="patient_email">Patient Email:</label>
-        <input type="text" id="email" name="email">    
-    </div>
-    <div>
-    </div>
-
-    <button id="sendEmailBtn">
-      Create Test
-    </button>
-    
+  
     <script>
-        document.getElementById("sendEmailBtn").addEventListener("click", function() {
-            const age = document.getElementById("age").value;  // pulls age from input
-            const email = document.getElementById("email").value;  // pulls email from input
+      document.getElementById("sendEmailBtn").addEventListener("click", function () {
+          const age = document.getElementById("age").value;
+          const email = document.getElementById("email").value;
+          if (age < 0 || age > 110) {
+            showCustomErrorAlert("Please enter a valid age between 0 and 110.");
+              return;
+          }
     
-            if (!email) {
-                alert("Please enter a valid email address."); // if email is not entered tell to enter
-                return;
-            }
+          if (!email) {
+            showCustomErrorAlert("Please enter a valid email address.");
+              return;
+          }
     
-            fetch("{% url 'PPST:createTest' %}", {   
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}", 
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ age: age, email: email,})  // sends age and email to backend
-            })
-            .then(response => response.json())  // gets response from backend
-            .then(data => {
-                if (data.message) {
-                    alert("Test Created Successfully! Test ID: " + data.test_id);
-                } else if (data.error) {
-                    alert("Error: " + data.error);  
-                }
-            })
-            .catch(error => console.error("Error:", error));
-        });
-    </script>  
+          fetch("{% url 'PPST:createTest' %}", {
+              method: "POST",
+              headers: {
+                  "X-CSRFToken": "{{ csrf_token }}",
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ age: age, email: email })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.message) {
+                  showCustomAlert(data.test_id);
+              } else if (data.error) {
+                  alert("Error: " + data.error);
+              }
+          })
+          .catch(error => console.error("Error:", error));
+      });
+      
+      function showCustomErrorAlert(message) {
+        const popup = document.getElementById("customErrorAlert");
+        const errorMessageText = popup.querySelector("#testIdText strong");
+        errorMessageText.textContent = message;
+        popup.style.display = "block";
+      }
+
+      function showCustomAlert(testId) {
+          const popup = document.getElementById("customAlert");
+          const testIdText = document.getElementById("testIdText").querySelector("strong");
+          testIdText.textContent = testId;
+          popup.style.display = "block";
+      }
+    
+      function closeCustomErrorAlert() {
+        document.getElementById("customErrorAlert").style.display = "none";
+      }
+    
+
+      function closeCustomAlert() {
+          document.getElementById("customAlert").style.display = "none";
+      }
+    </script>
+    
+    <div id="customAlert" class="custom-popup" style="display: none;">
+      <h2> Test created successfully, save the Test ID.</h2>
+      <p id="testIdText">Test ID: <strong></strong></p>
+      <button onclick="closeCustomAlert()">Okay</button>
+    </div>
+    
+    <div id="customErrorAlert" class="custom-popup" style="display: none;">
+      <h2>Error</h2>
+      <p id="testIdText">Message: <strong></strong></p>
+      <button onclick="closeCustomErrorAlert()">Okay</button>
+    </div>
+    
+
+  </body>
+  
 
 </body>
 

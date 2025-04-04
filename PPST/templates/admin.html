@@ -3,16 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Doctors</title>
+    <title>Admin Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'doctorHomePage.css' %}">
+    <style>
+        body {
+            line-height: 1.6; 
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f7f4de; 
+        }
+
+        .navbar {
+            background-color: #965531; 
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar_container {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar_title {
+            font-size: 24px;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .navbar_menu {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .navbar_item {
+            margin-right: 20px;
+        }
+
+        .navbar_links {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .navbar_links:hover {
+            text-decoration: underline;
+        }
+
+        #loginPage {
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background-color: #f7f4de;
+        }
+
+        #loginForm {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            border: 1px solid #ccc;
+        }
+
+        #loginForm label {
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        #loginForm input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        #loginForm button {
+            width: 100%;
+            padding: 10px;
+            background-color: #965531;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #loginForm button:hover {
+            background-color: #8c4d2b;
+        }
+
+        #loginError {
+            color: red;
+            text-align: center;
+        }
+
+        #adminPage {
+            padding: 20px;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+
+        #addDoctorTab, #doctorListTab, #testListTab {
+            margin-top: 20px;
+        }
+    </style>
     <script>
-        // Function to get the CSRF token from the cookie
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
                 const cookies = document.cookie.split(';');
                 for (let i = 0; i < cookies.length; i++) {
                     const cookie = cookies[i].trim();
-                    // Does this cookie string begin with the name we want?
                     if (cookie.substring(0, name.length + 1) === (name + '=')) {
                         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                         break;
@@ -25,10 +137,29 @@
     </script>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar" id="DrNavbar">
+        <div class="navbar_container">
+            <a href="{% url 'PPST:doctorHomePage' %}">
+                <img src="{% static 'Images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
+            </a>
+            <span class="navbar_title">Admin Dashboard</span>
+            <ul class="navbar_menu">
+                <li class="navbar_item">
+                    <a href="javascript:void(0);" class="navbar_links" onclick="showTab('list')">Doctors List</a>
+                </li>
+                <li class="navbar_item">
+                    <a href="javascript:void(0);" class="navbar_links" onclick="showTab('add')">Add Doctor</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Login Page (Centered) -->
     <div id="loginPage">
-        <h1>Admin Login</h1>
         <form id="loginForm">
             {% csrf_token %}
+            <h1 style="text-align: center;">Admin Login</h1>
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required><br><br>
 
@@ -36,31 +167,32 @@
             <input type="password" id="password" name="password" required><br><br>
 
             <button type="submit">Login</button>
+            <p id="loginError" style="color: red;"></p>
         </form>
-        <p id="loginError" style="color: red;"></p>
     </div>
 
+    <!-- Admin Page (Tabbed Content) -->
     <div id="adminPage" style="display: none;">
-        <h1>Admin Page - Doctors</h1>
-        
-        <div>
+        <!-- Add New Doctor Section -->
+        <div id="addDoctorTab" style="display: block;">
             <h2>Add New Doctor</h2>
             <form id="addDoctorForm">
                 {% csrf_token %}
                 <label for="first_name">First Name:</label>
                 <input type="text" id="first_name" name="first_name" required><br><br>
-                
+
                 <label for="last_name">Last Name:</label>
                 <input type="text" id="last_name" name="last_name" required><br><br>
-                
+
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" required><br><br>
-                
+
                 <button type="submit">Add Doctor</button>
             </form>
         </div>
 
-        <div>
+        <!-- Doctors List Section -->
+        <div id="doctorListTab" style="display: none;">
             <h2>Doctors List</h2>
             <ul id="doctorList">
                 {% for doctor in doctors %}
@@ -71,7 +203,8 @@
             </ul>
         </div>
 
-        <div>
+        <!-- Tests for Selected Doctor -->
+        <div id="testListTab" style="display: none;">
             <h2>Tests for Selected Doctor</h2>
             <div id="testList">
                 <p>Select a doctor to see their associated tests.</p>
@@ -80,6 +213,7 @@
     </div>
 
     <script>
+        // Handle form submission for login
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault();
             
@@ -93,7 +227,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken  // CSRF token for security
+                    'X-CSRFToken': csrftoken
                 },
                 body: JSON.stringify(data)
             })
@@ -107,6 +241,7 @@
                 if (data.success) {
                     document.getElementById('loginPage').style.display = 'none';
                     document.getElementById('adminPage').style.display = 'block';
+                    showTab('add');  // Default to Add Doctor tab
                 } else {
                     document.getElementById('loginError').textContent = data.error;
                 }
@@ -117,6 +252,7 @@
             });
         });
 
+        // Handle Add Doctor form submission
         document.getElementById('addDoctorForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -130,17 +266,13 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken  // CSRF token for security
+                    'X-CSRFToken': csrftoken
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => {
-                console.log('Response:', response);  // Debugging: check the response status and data
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('Response Data:', data);  // Debugging: inspect the returned data
-                if (data.message) {  // Check for the message key in the response
+                if (data.message) {
                     alert('Doctor added successfully!');
                     location.reload();
                 } else {
@@ -148,42 +280,88 @@
                 }
             })
             .catch(error => {
-                console.error('Error adding doctor:', error);  // More detailed error message in console
-                alert('An error occurred. Please try again.');  // Alert for the user in case of error
+                console.error('Error adding doctor:', error);
+                alert('An error occurred. Please try again.');
             });
         });
 
-        function fetchDoctorTests(doctorId) {
-            fetch(`/PPST/admin/doctor_tests/${doctorId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    let testList = document.getElementById("testList");
-                    testList.innerHTML = `<h3>Tests for ${data.doctor}</h3>`;
-                    if (data.tests && data.tests.length > 0) {
-                        let ul = document.createElement("ul");
-                        data.tests.forEach(test => {
-                            let li = document.createElement("li");
-                            li.innerHTML = `
-                                <strong>Test ID:</strong> ${test.test_id} <br>
-                                <strong>Time Started:</strong> ${formatDateTime(test.time_started)} <br>
-                                <strong>Time Ended:</strong> ${formatDateTime(test.time_ended)} <br>
-                                <strong>Status:</strong> ${test.status} <br>
-                                <strong>Patient Age:</strong> ${test.patient_age} <br>
-                            `;
-                            ul.appendChild(li);
-                        });
-                        testList.appendChild(ul);
-                    } else {
-                        testList.innerHTML += "<p>No tests found.</p>";
-                    }
-                })
-                .catch(error => console.error("Error fetching doctor tests:", error));
+        // Toggle between Add Doctor and List Doctors tabs
+        function showTab(tab) {
+            if (tab === 'add') {
+                document.getElementById('addDoctorTab').style.display = 'block';
+                document.getElementById('doctorListTab').style.display = 'none';
+                document.getElementById('testListTab').style.display = 'none'; // Hide tests section when on Add Doctor
+            } else if (tab === 'list') {
+                document.getElementById('addDoctorTab').style.display = 'none';
+                document.getElementById('doctorListTab').style.display = 'block';
+                document.getElementById('testListTab').style.display = 'block'; // Show tests section when on Doctors List
+            }
         }
 
-        function formatDateTime(dateTimeString) {
-            let date = new Date(dateTimeString);
-            return date.toLocaleString();
-        }
-    </script>
+        // Fetch tests for the selected doctor
+        function fetchDoctorTests(doctorId) {
+    fetch(`/PPST/admin/doctor_tests/${doctorId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to fetch doctor tests: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error("Error:", data.error);
+                alert("Error fetching doctor tests: " + data.error);
+                return;
+            }
+
+            let testList = document.getElementById("testList");
+
+            // Clear the test list before appending new data
+            testList.innerHTML = "";
+
+            // Display the doctor's name
+            testList.innerHTML = `<h3>Tests for Dr. ${data.doctor}</h3>`;
+
+            if (data.tests && data.tests.length > 0) {
+                let ul = document.createElement("ul");
+                data.tests.forEach(test => {
+                    let li = document.createElement("li");
+
+                    // Format the date and time using JavaScript's toLocaleString()
+                    const timeStarted = test.time_started ? new Date(test.time_started).toLocaleString('en-US') : 'N/A';
+                    const timeEnded = test.time_ended ? new Date(test.time_ended).toLocaleString('en-US') : 'N/A';
+
+                    li.innerHTML = `
+                        <h4>Test ID: ${test.test_id}</h4>
+                        <p><strong>Status:</strong> ${test.status || 'N/A'}</p>
+                        <p><strong>Patient Age:</strong> ${test.patient_age || 'N/A'}</p>
+                        <p><strong>Time Started:</strong> ${timeStarted}</p>
+                        <p><strong>Time Ended:</strong> ${timeEnded}</p>
+                        
+                        <h5>Stimuli and Responses</h5>
+                        <ul>
+                            ${test.stimuli_responses.map(response => `
+                                <li>
+                                    <p><strong>Stimuli Type:</strong> ${response.enum_type || 'N/A'}</p>
+                                    <p><strong>Given Stimuli:</strong> ${response.given__given_stimuli || 'N/A'}</p>
+                                    <p><strong>Correct Order:</strong> ${response.given__correct_order || 'N/A'}</p>
+                                    <p><strong>Response:</strong> ${response.response || 'N/A'}</p>
+                                    <p><strong>Response Per Click:</strong> ${response.response_per_click || 'N/A'}</p>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                    ul.appendChild(li);
+                });
+                testList.appendChild(ul);
+            } else {
+                testList.innerHTML += "<p>No tests found.</p>";
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching doctor tests:", error);
+            alert("An error occurred while fetching doctor tests. Please try again.");
+        });
+}    </script>
 </body>
 </html>

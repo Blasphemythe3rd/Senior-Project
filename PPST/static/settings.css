@@ -1,0 +1,19 @@
+.language-button {
+    padding: 10px 20px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    cursor: pointer;
+  }
+  
+  .language-button.selected {
+    background-color: #007BFF; /* Highlight color */
+    color: #fff;
+    border-color: #007BFF;
+  }
+  
+  .language-button.active {
+    background-color: #007BFF; /* Change to your preferred highlight color */
+    color: white;
+  }
+  
