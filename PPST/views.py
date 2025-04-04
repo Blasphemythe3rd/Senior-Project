@@ -20,6 +20,7 @@ import json
 import pandas as pd
 import random
 from datetime import datetime
+from django.db.models import Avg
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -300,8 +301,103 @@ def admin_login(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 def admin_page(request):
-    doctors = Doctor.objects.all()  
-    return render(request, "admin.html", {"doctors": doctors})
+     try:
+         # Fetch all tests
+         tests = Test.objects.all()
+ 
+         # Default values if no tests exist
+         total_tests = tests.count()
+         average_patient_age = tests.aggregate(Avg('patient_age'))['patient_age__avg'] or 0
+         total_accuracy = 0
+         total_responses = 0
+ 
+         # Calculate overall accuracy
+         for test in tests:
+             stimuli_responses = Stimuli_Response.objects.filter(test=test)
+             for response in stimuli_responses:
+                 if response.response and response.given and response.given.given_stimuli:
+                     total_responses += 1
+                     if str(response.response) == str(response.given.given_stimuli):  # Ensure both are strings for comparison
+                         total_accuracy += 1
+ 
+         average_accuracy = (total_accuracy / total_responses * 100) if total_responses > 0 else 0
+ 
+         # Fetch age distribution and accuracy data
+         age_data = { "0-9": 0, "10-19": 0, "20-29": 0, "30-39": 0, "40-49": 0,
+                      "50-59": 0, "60-69": 0, "70-79": 0, "80-89": 0, "90+": 0 }
+         accuracy_data = {key: 0 for key in age_data.keys()}  # Initialize accuracy as 0
+ 
+         if tests.exists():
+             # Convert to DataFrame
+             df = pd.DataFrame({'patient_age': list(tests.values_list('patient_age', flat=True))})
+ 
+             # Define age bins and labels
+             bins = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, float('inf')]
+             labels = ["0-9", "10-19", "20-29", "30-39", "40-49", 
+                       "50-59", "60-69", "70-79", "80-89", "90+"]
+ 
+             # Categorize ages into bins
+             df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
+ 
+             # Count occurrences in each group
+             age_data = df['age_group'].value_counts().sort_index().to_dict()
+ 
+             # Initialize accuracy tracking
+             accuracy_data = {key: [] for key in labels}  
+ 
+             # Fetch all responses and match them to the correct answers
+             responses = Stimuli_Response.objects.select_related('given')
+ 
+             for response in responses:
+                 correct = response.given.correct_order.strip()
+                 user_response = response.response.strip()
+ 
+                 if len(correct) == len(user_response) and len(correct) > 0:
+                     # Calculate exact character match percentage
+                     match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
+                     accuracy_percentage = (match_count / len(correct)) * 100
+                 else:
+                     accuracy_percentage = 0  # If lengths don't match, assume 0% accuracy
+ 
+                 # Get the corresponding test age and categorize it
+                 age = response.test.patient_age
+                 age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
+ 
+                 if age_group in accuracy_data:
+                     accuracy_data[age_group].append(accuracy_percentage)
+ 
+             # Compute average accuracy for each age group
+             for key in accuracy_data.keys():
+                 if accuracy_data[key]:  # Avoid division by zero
+                     accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
+                 else:
+                     accuracy_data[key] = 0  # If no data, default to 0%
+ 
+         # Pass data to the template
+         doctors = Doctor.objects.all()
+         return render(request, "admin.html", {
+             "doctors": doctors,
+             "total_tests": total_tests,
+             "average_patient_age": average_patient_age,
+             "average_accuracy": f"{average_accuracy:.2f}",
+             "age_labels": json.dumps(list(age_data.keys())),
+             "age_values": json.dumps(list(age_data.values())),
+             "accuracy_labels": json.dumps(list(accuracy_data.keys())),
+             "accuracy_values": json.dumps(list(accuracy_data.values())),
+         })
+ 
+     except Exception as e:
+         return render(request, "admin.html", {
+             "error": f"An error occurred: {str(e)}",
+             "doctors": [],
+             "total_tests": 0,
+             "average_patient_age": 0,
+             "average_accuracy": 0,
+             "age_labels": json.dumps([]),
+             "age_values": json.dumps([]),
+             "accuracy_labels": json.dumps([]),
+             "accuracy_values": json.dumps([]),
+         })
 
 @require_GET
 def list_doctors(request):
@@ -371,7 +467,7 @@ def doctor_tests(request, doctor_id):
         return JsonResponse({"error": "Doctor not found"}, status=404)
     
     
-@require_POST
+@csrf_exempt
 def add_doctor(request):
     """Adds a new doctor, ensuring a unique username in 'doctor#' format."""
     try:
@@ -391,18 +487,85 @@ def add_doctor(request):
             doctor_count += 1
 
         new_doctor = Doctor.objects.create(username=username, first_name=first_name, last_name=last_name, email=email)
-        new_doctor.set_password("defaultpassword123")  
+        default_password = "defaultpassword123"
+        new_doctor.set_password(default_password)
         new_doctor.save()
-
+ 
+         # Prepare email content
+        subject = "Your Doctor Account Credentials"
+        message = (
+             f"Hello {first_name},\n\n"
+             f"Your account has been created successfully.\n\n"
+             f"Username: {username}\n"
+             f"Password: {default_password}\n\n"
+             f"Please change your password after logging in."
+         )
+ 
+         # Attempt to send email
+        try:
+             send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+             email_status = "Email sent successfully!"
+        except Exception:
+             email_status = "Email doesn't exist."
+ 
         return JsonResponse({
-            "message": "Doctor added successfully!",
-            "doctor_id": new_doctor.id,
-            "username": username
+             "message": f"Doctor added successfully! {email_status}",
+             "doctor_id": new_doctor.id,
+             "username": username
         })
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
+@require_GET
+def overall_average_statistics(request):
+     try:
+         # Fetch all tests (or apply any filter if needed)
+         tests = Test.objects.all()
+ 
+         if not tests:
+             return render(request, "admin.html", {
+                 "total_tests": 0,
+                 "average_patient_age": 0,
+                 "average_accuracy": 0,
+             })
+ 
+         total_tests = tests.count()
+ 
+         # Calculate overall average patient age
+         average_patient_age = tests.aggregate(Avg('patient_age'))['patient_age__avg']
+ 
+         # Calculate overall average accuracy (example based on response data)
+         total_accuracy = 0
+         total_responses = 0
+ 
+         # Loop through tests to accumulate accuracy data
+         for test in tests:
+             stimuli_responses = Stimuli_Response.objects.filter(test=test)
+             for response in stimuli_responses:
+                 total_responses += 1
+                 # Compare the response with given stimuli or correct order (whichever is applicable)
+                 if response.response == response.given.given_stimuli:  # Assuming given_stimuli holds the correct answer
+                     total_accuracy += 1
+ 
+         # Calculate overall accuracy (percentage)
+         average_accuracy = (total_accuracy / total_responses * 100) if total_responses > 0 else 0
+ 
+         # Render the admin.html template with the calculated data
+         return render(request, "admin.html", {
+             "total_tests": total_tests,
+             "average_patient_age": average_patient_age,
+             "average_accuracy": f"{average_accuracy:.2f}",
+         })
+ 
+     except Exception as e:
+         return render(request, "admin.html", {
+             "error": f"An error occurred: {str(e)}",
+             "total_tests": 0,
+             "average_patient_age": 0,
+             "average_accuracy": 0,
+         })
 
 def doctorHomePage(request):
     doctor = request.user
