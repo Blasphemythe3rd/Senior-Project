@@ -11,7 +11,7 @@ from django.utils.timezone import now
 #---------------------------------------------------------------------------
 try:
     # creates the doctors based off the doctors_data
-    d0 = Doctor(username="doctor0", email="alice.smith@gmail.com", first_name="Alice", last_name="Smith")
+    d0 = Doctor(username="doctor0", email="alice.smith@hospital.com", first_name="Alice", last_name="Smith")
     d0.set_password("SecurePass123")
     d0.save()
     d1 = Doctor(username="doctor1", email="bob.jones@hospital.com", first_name="Bob", last_name="Jones")
