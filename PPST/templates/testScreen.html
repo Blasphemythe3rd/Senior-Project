@@ -14,7 +14,7 @@
 </head>
 
 <body>
-    {% comment %} <script>   --- for changing font, does not work
+    {% comment %} <script>   //for changing font, does not work
         fontSize = localStorage.getItem('fontSize');
         console.log(fontSize);
         const digitBoxes = document.getElementsByClassName('digit-box');
@@ -23,6 +23,7 @@
             digitBoxes[i].style.fontSize = fontSize;
         }
     </script> {% endcomment %}
+
     <div class="banner">
         <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
     </div>
@@ -55,7 +56,7 @@
     {{ stimuli_list|json_script:"stimuli-data" }}
     {{ stimuli_enum|json_script:"stimuli-enum" }}
 
-    <button id="nextButton">Next</button>
+    <button class="submit-button" id="nextButton">Next</button>
 
     <script>
         let clickButtonSound = new Audio("{% static 'clickButton.wav' %}")
@@ -103,12 +104,13 @@
             // Function to display the next character in the stimuli
             currChar = 0;
             currStimuli = 0;
+            counterRandStim = 0;
             currGivenStim = null;
 
             //Temp varible to fix inputStartTime
             temp = 0;
             function showNextStimulus(charIndex, stimIndex) {
-                if (currStimuli >= givenStimuli.length) {
+                if (counterRandStim >= givenStimuli.length) {
                     return;
                 }
 
@@ -141,21 +143,29 @@
 
                 showNextStimulus(currChar, currStimuli);
 
-            }, 1000);
+            }, 100); //Change this value to speed up or slow down stimuli character looping
 
 
             // Stop the display when all characters have been shown
             setTimeout(() => {
                 clearInterval(interval.length);  // Stop the interval after all stimuli have been displayed
-            }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
+            }, givenStimuli.length * 2000);  // Stop after all characters have been displayed
 
         });
 
         let recordedInputs = "";  // Stores the clicked characters
-
         lastClickTime = 0;
         firstClick = true;
         latencies = []; // will get stored for each response object
+        
+        const numbers = Array.from({ length: 12 }, (_, i) => i + 2); //sets array of 2-13
+
+                // randomizes stimuli numbers
+                for (let i = numbers.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+                }
+
 
         document.addEventListener('DOMContentLoaded', function () {
             const boxes = document.querySelectorAll('.digit-box, .letter-box');
@@ -236,15 +246,33 @@
                 latencies = [];
                 lastClickTime = 0;
                 firstClick = true;
-                currStimuli += 1;
+                counterRandStim += 1
                 currChar = 0;
 
                 //Temp varible to fix inputStartTime
                 temp = 0;
 
-                if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
+
+                if (counterRandStim < 1){
+                    currStimuli += 1;
+                    
+                }
+                
+                else if(counterRandStim == 1) {  //<------------------- practice page goes here.
+                    currStimuli += 1;
+                   
+                }
+
+                else if (counterRandStim == (givenStimuli.length)) { // once complete -- add other test completion code here
                     window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}"); // does not allow going back in browser history
                 }
+
+                else if(counterRandStim >= 2) {
+                    currStimuli = numbers.shift();
+                    
+                }
+
+                
             });
 
         });
