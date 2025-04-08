@@ -1,5 +1,4 @@
 {% extends 'doctorNav.html' %}
-{% load static %}
 
 {% block title %}Home{% endblock %}
 
@@ -9,16 +8,19 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="{% static 'doctorHomePage.css' %}">
+        {% load static %}
+        
+        <link rel="stylesheet" href="{% static 'doctorHomePage.css' %}">
+        <link rel="icon" href="data:,">
+        
     </head>
-
 
  <!-- Hero Section-->
  <div class="main">
     <div class="main__container">
         <div class="main__content">
 
-            <h1>Dr. {{ doctor.first_name }} {{ doctor.last_name }} Messages</h1>
+            <h1>Dr. {{ user.first_name }} {{ user.last_name }} Messages</h1>
 
             <div class="main__content--notification">
                 <button id="notification__button">Show Notifications</button>
