@@ -29,6 +29,7 @@
         <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
     </div>
     <div class="box" id="input-display"></div>
+    <div id="message-display" class="message-box"></div>
     <div class="container">
         <div class="digit-box">2</div>
         <div class="digit-box">3</div>
@@ -264,6 +265,15 @@
                    
                 }
 
+                else if (counterRandStim === 2) { // Show alert after practice questions
+                    const proceed = confirm("You are ready to start the test! Click OK to begin.");
+                    if (proceed) {
+                        counterRandStim += 1; // Increment to move past the practice phase
+                        currStimuli = numbers.shift(); // Start the actual test
+                    }
+                    return;
+                }
+
                 else if (counterRandStim == (givenStimuli.length)) { // once complete -- add other test completion code here
                     window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}"); // does not allow going back in browser history
                 }
@@ -276,6 +286,31 @@
                 
             });
 
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const messageDisplay = document.getElementById('message-display');
+
+            function updateMessage() {
+                if (counterRandStim < 1) {
+                    messageDisplay.textContent = "Practice Question #1 4-Digit Number Span";
+                }
+                else if (counterRandStim === 1) {
+                    messageDisplay.textContent = "Practice Question #2 4-Digit Number/Letter Span";
+                } else if (counterRandStim === 2) {
+                    messageDisplay.textContent = "Get ready! The test is about to begin.";
+                } else {
+                    messageDisplay.textContent = ""; // Clear the message for the actual test
+                }
+            }
+
+            // Call updateMessage initially and after each stimulus
+            updateMessage();
+
+            document.getElementById("nextButton").addEventListener("click", function () {
+                // Update the message after incrementing counterRandStim
+                updateMessage();
+            });
         });
 
     </script>
