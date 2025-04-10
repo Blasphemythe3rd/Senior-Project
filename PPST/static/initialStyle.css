@@ -97,6 +97,8 @@ body {
   color: #fff;
   font-size: 32px;
   cursor: pointer;
+  justify-content: center;
+  align-items: center;
 }
 
 .submit-button:hover {
@@ -106,4 +108,8 @@ body {
 .clicked {
   background-color: grey;
   pointer-events: none;
+}
+
+.hidden {
+ display: none;
 }
