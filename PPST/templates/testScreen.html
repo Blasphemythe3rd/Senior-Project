@@ -60,6 +60,52 @@
 
     <button class="submit-button" id="nextButton">Next</button>
 
+    <!-- Modal for the screen alert -->
+    <div id="alertModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <p id="modalMessage">You are ready to start the test!</p>
+            <button id="modalOkButton" class="modal-button">OK</button>
+        </div>
+    </div>
+
+    <style>
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+
     <script>
         let clickButtonSound = new Audio("{% static 'clickButton.wav' %}")
         let nextButtonSound = new Audio("{% static 'nextButton.mp3' %}")
@@ -265,12 +311,20 @@
                    
                 }
 
-                else if (counterRandStim === 2) { // Show alert after practice questions
-                    const proceed = confirm("You are ready to start the test! Click OK to begin.");
-                    if (proceed) {
+                else if (counterRandStim === 2) { // Show modal after practice questions
+                    const alertModal = document.getElementById("alertModal");
+                    const modalOkButton = document.getElementById("modalOkButton");
+
+                    // Show the modal
+                    alertModal.style.display = "flex";
+
+                    // Handle the OK button click
+                    modalOkButton.addEventListener("click", function () {
+                        alertModal.style.display = "none"; // Hide the modal
                         counterRandStim += 1; // Increment to move past the practice phase
                         currStimuli = numbers.shift(); // Start the actual test
-                    }
+                    });
+
                     return;
                 }
 
@@ -297,8 +351,6 @@
                 }
                 else if (counterRandStim === 1) {
                     messageDisplay.textContent = "Practice Question #2 4-Digit Number/Letter Span";
-                } else if (counterRandStim === 2) {
-                    messageDisplay.textContent = "Get ready! The test is about to begin.";
                 } else {
                     messageDisplay.textContent = ""; // Clear the message for the actual test
                 }
