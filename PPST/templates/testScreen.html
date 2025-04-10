@@ -15,6 +15,7 @@
 </head>
 
 <body>
+
     {% comment %}
     <script>   //for changing font, does not work
         fontSize = localStorage.getItem('fontSize');
@@ -25,6 +26,7 @@
             digitBoxes[i].style.fontSize = fontSize;
         }
     </script> {% endcomment %}
+
 
     <div class="banner">
         <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
@@ -130,7 +132,7 @@
                 currGivenStim = currentStimString;
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
-                    stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex); // sets text to be spoken to stimuli
+                    stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex).toLowerCase(); // sets text to be spoken to stimuli
                     window.speechSynthesis.speak(stimuliTTS);
                     currChar += 1;
                 } else {
