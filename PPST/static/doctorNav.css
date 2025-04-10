@@ -5,7 +5,6 @@
     --background-color: #f7f4de;
 }
 
-
 .navbar {
     background: var(--primary-color);
     height: 80px;
@@ -16,6 +15,7 @@
     position: relative;
     top: 0;
     z-index: 999;
+    width: 100%
 }
 
 .navbar_container {
@@ -156,7 +156,7 @@
         top: 80px;
         background-color: var(--primary-color);
         left:0;
-        padding-top:10px;
+        padding-top:0px;
     }
 
     .navbar_item {
