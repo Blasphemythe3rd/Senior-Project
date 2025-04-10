@@ -24,9 +24,10 @@ body {
     font-size: 18px;
     position: aboslute;
     top: 0;
+
 }
 .banner-text {
-    margin-left: 5%;
+  margin-left: 5%;
 }
 .login-container {
     background-color: var(--background-color);
@@ -36,10 +37,12 @@ body {
     width: 300px;
     margin-top: 60px; /* Adjust this value if needed */
 }
+
 .login-container h2 {
-    margin-bottom: 20px;
-    text-align: center;
+  margin-bottom: 20px;
+  text-align: center;
 }
+
 .login-container input {
     width: 100%;
     padding: 10px 0 10px 10px;
@@ -47,6 +50,7 @@ body {
     border: 1px solid var(--accent-color);
     border-radius: 4px;
 }
+
 .login-container button{
     width: 100%;
     padding: 10px;
@@ -57,37 +61,44 @@ body {
     font-size: 16px;
     cursor: pointer;
 }
+
 .login-container button:hover {
     background-color: var(--secondary-color);
 }
+
 .container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 .box {
-    width: 100px;
-    height: 100px;
-    margin: 20px;
-    border-radius: 8px;
-    border: 1px solid black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 500px;
+  height: 500px;
+  margin: 50px;
+  border-radius: 8px;
+  border: 8px solid black;
+  display: flex;
+  font-size: 250px;
+  font-weight: bold;
+  justify-content: center;
+  align-items: center;
 }
 .grey-box {
-    background-color: grey;
+  background-color: grey;
 }
-.digit-box, .letter-box {
-    width: 80px;
-    height: 80px;
-    margin: 10px;
-    border-radius: 8px;
-    border: 1px solid black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.digit-box,
+.letter-box {
+  width: 120px;
+  height: 120px;
+  margin: 10px;
+  border-radius: 8px;
+  border: 3px solid black;
+  display: flex;
+  font-size: 80px;
+  font-weight: bold;
+  justify-content: center;
+  align-items: center;
 }
 
 .submit-button {
@@ -105,8 +116,8 @@ body {
 }
 
 .clicked {
-    background-color: grey;
-    pointer-events: none;
+  background-color: grey;
+  pointer-events: none;
 }
 
 .forgot-password-link {
@@ -117,4 +128,7 @@ body {
 .forgot-password-link:hover{
     color: var(--accent-color);
     transition: 0.3 ease;
+
+.hidden {
+ display: none;
 }
