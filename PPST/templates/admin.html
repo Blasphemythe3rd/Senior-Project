@@ -1,164 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'doctorHomePage.css' %}">
-    <style>
-        body {
-            line-height: 1.6; 
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f7f4de; 
-        }
+{% extends 'admin_things/adminBase.html' %}
+{% load static %}
 
-        .navbar {
-            background-color: #965531; 
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+{% block title %}Admin Dashboard{% endblock %}
 
-        .navbar_container {
-            display: flex;
-            align-items: center;
-        }
+{% block styles %}
+    {% include 'admin_things/adminStyles.html' %}
+{% endblock %}
 
-        .navbar_title {
-            font-size: 24px;
-            color: white;
-            margin-left: 10px;
-        }
-
-        .navbar_menu {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-        }
-
-        .navbar_item {
-            margin-right: 20px;
-        }
-
-        .navbar_links {
-            color: white;
-            text-decoration: none;
-            font-size: 18px;
-        }
-
-        .navbar_links:hover {
-            text-decoration: underline;
-        }
-
-        #loginPage {
-            display: flex;
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            background-color: #f7f4de;
-        }
-
-        #loginForm {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            border: 1px solid #ccc;
-        }
-
-        #loginForm label {
-            font-size: 16px;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        #loginForm input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-
-        #loginForm button {
-            width: 100%;
-            padding: 10px;
-            background-color: #965531;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        #loginForm button:hover {
-            background-color: #8c4d2b;
-        }
-
-        #loginError {
-            color: red;
-            text-align: center;
-        }
-
-        #adminPage {
-            padding: 20px;
-        }
-
-        h2 {
-            margin-top: 20px;
-        }
-
-        #addDoctorTab, #doctorListTab, #testListTab {
-            margin-top: 20px;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    
-        const csrftoken = getCookie('csrftoken');
-    </script>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar" id="DrNavbar">
-        <div class="navbar_container">
-            <a href="{% url 'PPST:doctorHomePage' %}">
-                <img src="{% static 'Images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
-            </a>
-            <span class="navbar_title">Admin Dashboard</span>
-            <ul class="navbar_menu">
-                <li class="navbar_item">
-                    <a href="javascript:void(0);" class="navbar_links" onclick="showTab('list')">Doctors List</a>
-                </li>
-                <li class="navbar_item">
-                    <a href="javascript:void(0);" class="navbar_links" onclick="showTab('add')">Add Doctor</a>
-                </li>
-                <li class="navbar_item">
-                    <a href="javascript:void(0);" class="navbar_links" onclick="showTab('average_statistics')">Average Statistics</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+{% block content %}
+    {% include 'admin_things/adminNav.html' %}
 
     <!-- Login Page -->
     <div id="loginPage">
@@ -176,27 +26,27 @@
         </form>
     </div>
 
-    <!-- Admin Page (Tabbed Content) -->
+    <!-- Admin Page -->
     <div id="adminPage" style="display: none;">
-        <!-- Add New Doctor Section -->
-        <div id="addDoctorTab" style="display: block;">
+        <!-- Add Doctor Tab -->
+        <div id="addDoctorTab" style="display: none;">
             <h2>Add New Doctor</h2>
             <form id="addDoctorForm">
                 {% csrf_token %}
                 <label for="first_name">First Name:</label>
                 <input type="text" id="first_name" name="first_name" required><br><br>
-
+    
                 <label for="last_name">Last Name:</label>
                 <input type="text" id="last_name" name="last_name" required><br><br>
-
+    
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" required><br><br>
-
+    
                 <button type="submit">Add Doctor</button>
             </form>
         </div>
-
-        <!-- Doctors List -->
+    
+        <!-- Doctors List Tab -->
         <div id="doctorListTab" style="display: none;">
             <h2>Doctors List</h2>
             <ul id="doctorList">
@@ -206,251 +56,33 @@
                     </li>
                 {% endfor %}
             </ul>
-        </div>
-
-        <!-- Tests for Selected Doctor -->
-        <div id="testListTab" style="display: none;">
-            <h2>Tests for Selected Doctor</h2>
+        
+            <!-- Test List -->
             <div id="testList">
-                <p>Select a doctor to see their associated tests.</p>
+                <p><strong>Select a doctor to see their associated tests.</strong></p>
             </div>
         </div>
-
+    
+        <!-- Average Statistics Tab -->
         <div id="averageStatisticsTab" style="display: none;">
-            
-            <h2>Overall Average Statistics</h2>
-            <p><strong>Total Tests Conducted:</strong> {{ total_tests }}</p>
-            <p><strong>Average Patient Age:</strong> {{ average_patient_age }}</p>
-            <p><strong>Overall Average Accuracy:</strong> {{ average_accuracy }}%</p>
-        
-            <h2>Age Distribution</h2>
-            <canvas id="ageChart" width="400" height="200"></canvas>
-        
-            <h2>Accuracy by Age Group</h2>
-            <canvas id="accuracyChart" width="400" height="200"></canvas>
-        
-            <script>
-                // Age Distribution Chart
-                const ageLabels = JSON.parse('{{ age_labels|safe }}');
-                const ageValues = JSON.parse('{{ age_values|safe }}');
-        
-                const ageCtx = document.getElementById('ageChart').getContext('2d');
-                const ageChart = new Chart(ageCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ageLabels,
-                        datasets: [{
-                            label: 'Number of Patients',
-                            data: ageValues,
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
-        
-                // Accuracy by Age Group Chart
-                const accuracyLabels = JSON.parse('{{ accuracy_labels|safe }}');
-                const accuracyValues = JSON.parse('{{ accuracy_values|safe }}');
-        
-                const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
-                const accuracyChart = new Chart(accuracyCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: accuracyLabels,
-                        datasets: [{
-                            label: 'Accuracy (%)',
-                            data: accuracyValues,
-                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        }
-                    }
-                });
-            </script>
+            <h2>Average Statistics</h2>
+            <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <div style="width: 50%; height: 400px;">
+                    <h2>Test Age Distribution</h2>
+                    <canvas id="ageChart" style="height: 100%; width: 100%;"></canvas>
+                </div>
+                <div style="width: 50%; height: 400px;">
+                    <h2>Accuracy Percentage by Age Group</h2>
+                    <canvas id="accuracyChart" style="height: 100%; width: 100%;"></canvas>
+                </div>
+            </div>
+            <br>
+            <h2 style="margin-top: 40px;">Stimulus Accuracy Breakdown</h2>
+            <div id="charts-container"></div>
         </div>
-
-
     </div>
+{% endblock %}
 
-    <script>
-        // Handle form submission for login
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            let formData = new FormData(this);
-            let data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
-
-            fetch('/PPST/admin/login/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to login: ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('loginPage').style.display = 'none';
-                    document.getElementById('adminPage').style.display = 'block';
-                    showTab('add');
-                } else {
-                    document.getElementById('loginError').textContent = data.error;
-                }
-            })
-            .catch(error => {
-                console.error('Error during login:', error);
-                document.getElementById('loginError').textContent = 'An error occurred. Please try again.';
-            });
-        });
-
-        // Handle Add Doctor form submission
-document.getElementById('addDoctorForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    let formData = new FormData(this);
-    let data = {};
-    formData.forEach((value, key) => {
-        data[key] = value;
-    });
-
-    fetch('/PPST/admin/add_doctor/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken // Ensuring correct CSRF token header
-        },
-        body: JSON.stringify(data),
-        credentials: 'same-origin' // Ensuring the request includes cookies
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert('Doctor added successfully!');
-            location.reload();
-        } else {
-            alert('Error adding doctor: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error adding doctor:', error);
-        alert('An error occurred. Please try again.');
-    });
-});
-
-
-        // Toggle between Add Doctor and List Doctors tabs
-        function showTab(tab) {
-        // Hide all tabs
-        document.getElementById('addDoctorTab').style.display = 'none';
-        document.getElementById('doctorListTab').style.display = 'none';
-        document.getElementById('testListTab').style.display = 'none';
-        document.getElementById('averageStatisticsTab').style.display = 'none';
-
-        // Show the selected tab
-        if (tab === 'add') {
-            document.getElementById('addDoctorTab').style.display = 'block';
-        } else if (tab === 'list') {
-            document.getElementById('doctorListTab').style.display = 'block';
-            document.getElementById('testListTab').style.display = 'block';
-        } else if (tab === 'average_statistics') {
-            document.getElementById('averageStatisticsTab').style.display = 'block';
-        }
-    }
-
-    // Set the default tab to "Add Doctor" when the page loads
-    document.addEventListener('DOMContentLoaded', function () {
-        showTab('add');
-    });
-
-
-        // Fetch tests for the selected doctor
-        function fetchDoctorTests(doctorId) {
-    fetch(`/PPST/admin/doctor_tests/${doctorId}/`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to fetch doctor tests: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.error) {
-                console.error("Error:", data.error);
-                alert("Error fetching doctor tests: " + data.error);
-                return;
-            }
-
-            let testList = document.getElementById("testList");
-
-            testList.innerHTML = "";
-
-            testList.innerHTML = `<h3>Tests for Dr. ${data.doctor}</h3>`;
-
-            if (data.tests && data.tests.length > 0) {
-                let ul = document.createElement("ul");
-                data.tests.forEach(test => {
-                    let li = document.createElement("li");
-
-                    const timeStarted = test.time_started ? new Date(test.time_started).toLocaleString('en-US') : 'N/A';
-                    const timeEnded = test.time_ended ? new Date(test.time_ended).toLocaleString('en-US') : 'N/A';
-
-                    li.innerHTML = `
-                        <h4>Test ID: ${test.test_id}</h4>
-                        <p><strong>Status:</strong> ${test.status || 'N/A'}</p>
-                        <p><strong>Patient Age:</strong> ${test.patient_age || 'N/A'}</p>
-                        <p><strong>Time Started:</strong> ${timeStarted}</p>
-                        <p><strong>Time Ended:</strong> ${timeEnded}</p>
-                        
-                        <h5>Stimuli and Responses</h5>
-                        <ul>
-                            ${test.stimuli_responses.map(response => `
-                                <li>
-                                    <p><strong>Stimuli Type:</strong> ${response.enum_type || 'N/A'}</p>
-                                    <p><strong>Given Stimuli:</strong> ${response.given__given_stimuli || 'N/A'}</p>
-                                    <p><strong>Correct Order:</strong> ${response.given__correct_order || 'N/A'}</p>
-                                    <p><strong>Response:</strong> ${response.response || 'N/A'}</p>
-                                    <p><strong>Response Per Click:</strong> ${response.response_per_click || 'N/A'}</p>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    `;
-                    ul.appendChild(li);
-                });
-                testList.appendChild(ul);
-            } else {
-                testList.innerHTML += "<p>No tests found.</p>";
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching doctor tests:", error);
-            alert("An error occurred while fetching doctor tests. Please try again.");
-        });
-}    </script>
-</body>
-</html>
+{% block scripts %}
+    {% include 'admin_things/adminScripts.html' %}
+{% endblock %}

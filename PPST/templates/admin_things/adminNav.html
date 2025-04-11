@@ -1,0 +1,20 @@
+{% load static %}
+<nav class="navbar" id="DrNavbar">
+    <div class="navbar_container">
+        <a href="{% url 'PPST:doctorHomePage' %}">
+            <img src="{% static 'Images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
+        </a>
+        <span class="navbar_title">Admin Dashboard</span>
+        <ul class="navbar_menu">
+            <li class="navbar_item">
+                <a href="javascript:void(0);" class="navbar_links" onclick="showTab('list')">Doctors List</a>
+            </li>
+            <li class="navbar_item">
+                <a href="javascript:void(0);" class="navbar_links" onclick="showTab('add')">Add Doctor</a>
+            </li>
+            <li class="navbar_item">
+                <a href="javascript:void(0);" class="navbar_links" onclick="showTab('average_statistics')">Average Statistics</a>
+            </li>
+        </ul>
+    </div>
+</nav>
