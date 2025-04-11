@@ -6,9 +6,6 @@
 {% block content %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
 <body>
     <div style="display: flex; gap: 10px; align-items: flex-start;">
         <div style="width: 50%; height: 400px;">
@@ -24,10 +21,31 @@
     <h2 style="margin-top: 40px;">Stimulus Accuracy Breakdown</h2>
     <div id="charts-container"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.1.0/build/Chart.BoxPlot.min.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // Use Chart directly — no need for ChartBoxPlot if you're using the UMD
+            new Chart(document.getElementById('accuracyChart'), {
+                type: 'boxplot',
+                data: {
+                    labels: ['A', 'B'],
+                    datasets: [{
+                        label: 'Example',
+                        data: [
+                            [1, 2, 3, 4, 5],
+                            [3, 4, 5, 6, 7]
+                        ]
+                    }]
+                },
+                options: {}
+            });
+        });
+    </script>
     <script>
         var labels = JSON.parse('{{ labels|safe }}');
         var values = JSON.parse('{{ values|safe }}');
-    
+
         var ctx1 = document.getElementById('ageChart').getContext('2d');
         var ageChart = new Chart(ctx1, {
             type: 'pie',
@@ -56,19 +74,20 @@
         });
     </script>
     <script>
-        var accuracyLabels = JSON.parse('{{ accuracy_labels|safe }}');
-        var accuracyValues = JSON.parse('{{ accuracy_values|safe }}');
-    
-        var ctx2 = document.getElementById('accuracyChart').getContext('2d');
-        var accuracyChart = new Chart(ctx2, {
-            type: 'bar',
+        const boxplotData = JSON.parse('{{ accuracy_boxplot|safe }}');
+        console.log("Boxplot Data:", boxplotData);
+        const box_labels = Object.keys(boxplotData);
+        const datasetData = Object.values(boxplotData);
+
+        new Chart(document.getElementById('accuracyChart').getContext('2d'), {
+            type: 'boxplot',
             data: {
-                labels: accuracyLabels,
+                labels: box_labels,
                 datasets: [{
-                    label: 'Average Accuracy (%) by Age Group',
-                    data: accuracyValues,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    label: 'Accuracy by Age Group',
+                    data: datasetData,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
                 }]
             },
@@ -78,7 +97,7 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100
+                        max: 100,
                     }
                 }
             }
@@ -101,15 +120,18 @@
     <script>
         const stimulusAccuracyAvg = JSON.parse('{{ stimulus_accuracy|safe }}');
         console.log(stimulusAccuracyAvg)
-        let stimulusCounter = 1;
+        const stimulusLatencyAvg = JSON.parse('{{ stimulus_latency|safe }}');
+        console.log(stimulusLatencyAvg)
+        const AGE_LABELS = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100+"];
 
+        let stimulusCounter = 1;
         Object.keys(stimulusAccuracyAvg).forEach(stim_id => {
             const chartDiv = document.createElement('div');
             chartDiv.classList.add('chart-container');
             chartDiv.style.marginBottom = '20px';
 
             const header = document.createElement('h3');
-            header.innerText = `Stimulus ${stimulusCounter} Accuracy by Age Group`;
+            header.innerText = `Stimulus ${stimulusCounter} Accuracy and Latency by Age Group`;
             chartDiv.appendChild(header);
 
             stimulusCounter++;
@@ -119,15 +141,30 @@
 
             document.getElementById('charts-container').appendChild(chartDiv);
 
-            const accuracyData = stimulusAccuracyAvg[stim_id];
+            const accuracyData = stimulusAccuracyAvg[stim_id] || {};
+            const latencyData = stimulusLatencyAvg[stim_id] || {};
+
             const chartData = {
-                labels: labels,
+                labels: AGE_LABELS,
                 datasets: [{
                     label: 'Accuracy (%)',
-                    data: labels.map(age_group => accuracyData[age_group]),
+                    data: AGE_LABELS.map(age_group => accuracyData[age_group] ?? null),
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    yAxisID: 'y',
+                    type: 'bar'
+                },
+                {
+                    label: 'Latency (ms)',
+                    data: AGE_LABELS.map(age_group => latencyData[age_group] ?? null),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'line',
+                    tension: 0.3,
+                    fill: false
                 }]
             };
 
@@ -137,9 +174,21 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            max: 100,
-                            stepSize: 10
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Accuracy (%)'
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Latency (ms)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
                         }
                     }
                 }
