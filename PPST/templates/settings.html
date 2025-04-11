@@ -65,6 +65,7 @@
           languageButtons.forEach(btn => btn.classList.remove('active'));
           this.classList.add('active');
           const selectedLanguage = this.getAttribute('data-lang');
+          document.cookie = "googtrans=/en/" + selectedLanguage + "; path=/;";
           localStorage.setItem('selectedLanguage', selectedLanguage);
       });
     });
