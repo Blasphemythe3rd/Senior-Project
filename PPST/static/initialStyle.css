@@ -128,7 +128,7 @@ body {
 .forgot-password-link:hover{
     color: var(--accent-color);
     transition: 0.3 ease;
-
+}  
 .hidden {
  display: none;
 }
