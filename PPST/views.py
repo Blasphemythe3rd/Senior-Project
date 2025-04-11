@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseNotFound
 from django.views.decorators.http import require_GET, require_POST
@@ -21,6 +22,7 @@ import pandas as pd
 import random
 from datetime import datetime
 from django.db.models import Avg
+from openpyxl import Workbook, load_workbook # type: ignore
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -197,70 +199,62 @@ def testInfo(request):
     })
 
 def download_test(request, test_id):
-    spreadsheet = []
-
-    # https://www.geeksforgeeks.org/writing-csv-files-in-python/ 
     test = Test.objects.get(test_id = test_id)
+    
+    # uses django's os to grab the template independent of OS
+    template_file_path = os.path.join(
+        settings.BASE_DIR,  # base directory is the root of the project
+        'PPST', 'test_data_template.xlsx' # base_dir/PPST/test_data_template.xlsx
+    )
+
+    wb = load_workbook(filename= template_file_path)
+
+    ws = wb["Raw Data"]
+
+    test_info = [test.test_id, test.time_started.replace(tzinfo=None), test.time_ended.replace(tzinfo=None), test.status, test.patient_age]
+
+    cell_range = ws['A2': 'E2']
+    index = 0
+    for row in cell_range:
+        for cell in row:
+            cell.value = test_info[index]
+            index += 1
+        
     responses = Stimuli_Response.objects.filter(test = test)
-    response_times = []
+    response_data = []
     stimulus_num = 1
+    latencies = []
     for response in responses:
-        response_times.extend(response.response_per_click)
-        dict = { # per stimulus part
-            "Stimulus #": stimulus_num,
-            "Response Time Per Click": response.response_per_click,
-            "Responses": response.response,
-            "Total Stimuli Time" : sum(response.response_per_click)
-        }
+        response_list = [stimulus_num, response.given.correct_order, response.response, str(response.response_per_click), response.enum_type]
+        response_data.append(response_list)
+        latencies.append(response.response_per_click)
         stimulus_num += 1
 
-        spreadsheet.append(dict)
-    
-    try: # prevents divide for debugging
-        avg_response = sum(response_times)/len(response_times)
-    except:
-        avg_response = 0
-    
-    test_info = { # overall test info
-            "Test ID": test.test_id,
-            "Time Start": test.time_started,
-            "Time End": test.time_ended,
-            "Status": test.status,
-            "Age": test.patient_age, 
-            "Accuracy %": _calculate_accuracies(test),
-            "Average Response Time": avg_response
-        }
-    
-    # stores CSV as temporary file on local machine, not in project (debugged w/ chatgpt)
-    with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=False) as csvfile:
-        writer = csv.writer(csvfile)
-        # create top table
-        writer.writerow(["Test ID", "Time Start", "Time End", "Status", "Age", "Accuracy %", "Average Response Time"])
-        writer.writerow([
-            test_info["Test ID"],
-            test_info["Time Start"],
-            test_info["Time End"],
-            test_info["Status"],
-            test_info["Age"],
-            test_info["Accuracy %"],
-            test_info["Average Response Time"]
-        ])
+    for row in response_data:
+        ws.append(row)
 
-        writer.writerow([])
-        # add bottom table
-        writer.writerow(["Stimulus #", "Response Time Per Click", "Responses", "Total Stimuli Time"])
-        for row in spreadsheet: # add to csv row by row
-            writer.writerow([
-                row["Stimulus #"],
-                row["Response Time Per Click"],
-                row["Responses"],
-                row["Total Stimuli Time"]
-            ])
-
+    ws2 = wb["Data Insights"]
     
-    tmpfile_path = csvfile.name
+    index = 0
+    for row in ws2.iter_cols(min_row=2, min_col = 4, max_col = 4, max_row = 15):
+        for cell in row:
+            cell.value = sum(latencies[index]) / len(latencies[index])
+            index += 1
 
-    response = FileResponse(open(tmpfile_path, 'rb'), as_attachment=True, filename="test_data.csv")
+    index = 0
+    for row in ws2.iter_cols(min_row=2, min_col = 3, max_col = 3, max_row = 15):
+        for cell in row:
+            cell.value = sum(latencies[index])
+            index += 1
+
+
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        wb.save(tmp.name)
+        tmp.seek(0)
+        stream = tmp.read()
+        tmpfile_path = tmp.name
+    
+    response = FileResponse(open(tmpfile_path, 'rb'), as_attachment=True, filename="test_data.xlsx")
 
     return response
 

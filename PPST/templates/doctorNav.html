@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}My Site{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'doctorHomePage.css' %}">
+    <link rel="stylesheet" href="{% static 'doctorNav.css' %}">
 </head>
 <body>
     <!-- Shared Navbar -->
@@ -16,12 +16,13 @@
                 <img src="{% static 'images/DRBabyWario.jpg' %}" alt="logoPic" id="navbar_logo">
             </a>
             
-            <div class = "navbar_toggle" id = "mobile-menu">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
+            <div class="hamburger" id="hamburger-icon">
+                <div></div>
+                <div></div>
+                <div></div>
             </div>
-            <ul class="navbar_menu">
+
+            <ul class="navbar_menu" id="navbar-menu">
                 <li class="navbar_item">
                     <a href="/PPST/testInfo" class="navbar_links">
                         Patient Logs
@@ -46,9 +47,23 @@
         </div>
     </nav>
 
+    <script>
+        const hamburger = document.getElementById('hamburger-icon');
+        const navbarMenu = document.getElementById('navbar-menu');
+
+        // JavaScript to toggle the menu on mobile
+        hamburger.addEventListener('click', function(){
+            this.classList.toggle('active');
+            navbarMenu.classList.toggle('active'); // Toggle the visibility of the menu
+        });
+    </script>
+
     <!-- Page-specific content -->
     <div class="content">
         {% block content %}{% endblock %}
     </div>
 </body>
+
+
+
 </html>

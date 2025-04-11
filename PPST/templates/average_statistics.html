@@ -8,20 +8,22 @@
 <html lang="en">
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{% static 'averageStatistics.css' %}">
 </head>
 <body>
-    <div style="display: flex; gap: 10px; align-items: flex-start;">
-        <div style="width: 50%; height: 400px;">
+    <div class="charts-wrapper">
+        <div class="chart-container">
             <h2>Test Age Distribution</h2>
-            <canvas id="ageChart" style="height: 100%; width: 100%;"></canvas>
+            <canvas id="ageChart" class="chart"></canvas>
         </div>
-        <div style="width: 50%; height: 400px;">
+        <div class="chart-container">
             <h2>Accuracy Percentage by Age Group</h2>
-            <canvas id="accuracyChart" style="height: 100%; width: 100%;"></canvas>
+            <canvas id="accuracyChart" class="chart"></canvas>
         </div>
     </div>
+    
     <br>
-    <h2 style="margin-top: 40px;">Stimulus Accuracy Breakdown</h2>
+    <h2 class="stimulus-header">Stimulus Accuracy Breakdown</h2>
     <div id="charts-container"></div>
 
     <script>
@@ -51,10 +53,12 @@
                 }]
             },
             options: {
-                responsive: true
+                responsive: true,
+                maintainAspectRatio: true
             }
         });
     </script>
+
     <script>
         var accuracyLabels = JSON.parse('{{ accuracy_labels|safe }}');
         var accuracyValues = JSON.parse('{{ accuracy_values|safe }}');
@@ -74,7 +78,7 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -84,29 +88,14 @@
             }
         });
     </script>
-    <style>
-        #charts-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        #charts-container .chart-container {
-            width: calc(50% - 8px);
-            max-height: 300px;
-            height: 500px;
-            display: flex;
-            flex-direction: column;
-        }
-    </style>
+
     <script>
         const stimulusAccuracyAvg = JSON.parse('{{ stimulus_accuracy|safe }}');
-        console.log(stimulusAccuracyAvg)
         let stimulusCounter = 1;
 
         Object.keys(stimulusAccuracyAvg).forEach(stim_id => {
             const chartDiv = document.createElement('div');
-            chartDiv.classList.add('chart-container');
-            chartDiv.style.marginBottom = '20px';
+            chartDiv.classList.add('stimulus-chart-container');
 
             const header = document.createElement('h3');
             header.innerText = `Stimulus ${stimulusCounter} Accuracy by Age Group`;
@@ -133,7 +122,7 @@
 
             const options = {
                 responsive: true,
-                maintainAspectRatio: false,
+                maintainAspectRatio: true,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -151,7 +140,6 @@
             });
         });
     </script>
-
 </body>
 </html>
 {% endblock %}
