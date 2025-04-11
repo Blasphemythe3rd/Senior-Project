@@ -456,15 +456,17 @@ def get_overall_accuracy_boxplot_data(tests):
     for group, scores in age_group_accuracies.items():
         if scores:
             sorted_scores = sorted(scores)
-            boxplot_data[group] = [
-                float(np.min(sorted_scores)),     # min
-                float(np.percentile(sorted_scores, 25)),  # q1
-                float(np.percentile(sorted_scores, 50)),  # median
-                float(np.percentile(sorted_scores, 75)),  # q3
-                float(np.max(sorted_scores)),     # max
-            ]
+            boxplot_data[group] = {
+                "min": float(np.min(sorted_scores)),
+                "q1": float(np.percentile(sorted_scores, 25)),
+                "median": float(np.percentile(sorted_scores, 50)),
+                "q3": float(np.percentile(sorted_scores, 75)),
+                "max": float(np.max(sorted_scores)),
+            }
         else:
-            boxplot_data[group] = [0, 0, 0, 0, 0]
+            boxplot_data[group] = {
+                "min": 0, "q1": 0, "median": 0, "q3": 0, "max": 0
+            }
 
     return boxplot_data
 

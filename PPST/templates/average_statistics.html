@@ -6,6 +6,10 @@
 {% block content %}
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
+</head>
 <body>
     <div style="display: flex; gap: 10px; align-items: flex-start;">
         <div style="width: 50%; height: 400px;">
@@ -20,28 +24,6 @@
     <br>
     <h2 style="margin-top: 40px;">Stimulus Accuracy Breakdown</h2>
     <div id="charts-container"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.1.0/build/Chart.BoxPlot.min.js"></script>
-    <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            // Use Chart directly — no need for ChartBoxPlot if you're using the UMD
-            new Chart(document.getElementById('accuracyChart'), {
-                type: 'boxplot',
-                data: {
-                    labels: ['A', 'B'],
-                    datasets: [{
-                        label: 'Example',
-                        data: [
-                            [1, 2, 3, 4, 5],
-                            [3, 4, 5, 6, 7]
-                        ]
-                    }]
-                },
-                options: {}
-            });
-        });
-    </script>
     <script>
         var labels = JSON.parse('{{ labels|safe }}');
         var values = JSON.parse('{{ values|safe }}');
@@ -74,21 +56,36 @@
         });
     </script>
     <script>
-        const boxplotData = JSON.parse('{{ accuracy_boxplot|safe }}');
-        console.log("Boxplot Data:", boxplotData);
-        const box_labels = Object.keys(boxplotData);
-        const datasetData = Object.values(boxplotData);
+        const boxplotDataRaw = JSON.parse('{{ accuracy_boxplot|safe }}');
+        const AGELABELS = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100+"];
+        console.log(boxplotDataRaw);
 
-        new Chart(document.getElementById('accuracyChart').getContext('2d'), {
+        const boxplotDatasets = AGELABELS.map(age_group => {
+            const stats = boxplotDataRaw[age_group];
+            return {
+                min: stats.min,
+                q1: stats.q1,
+                median: stats.median,
+                q3: stats.q3,
+                max: stats.max
+            };
+        });
+    
+        const ctx = document.getElementById('accuracyChart').getContext('2d');
+    
+        new Chart(ctx, {
             type: 'boxplot',
             data: {
-                labels: box_labels,
+                labels: AGELABELS,
                 datasets: [{
-                    label: 'Accuracy by Age Group',
-                    data: datasetData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
+                    label: 'Overall Accuracy',
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    outlierColor: '#999',
+                    padding: 10,
+                    itemRadius: 0,
+                    data: boxplotDatasets
                 }]
             },
             options: {
@@ -98,6 +95,29 @@
                     y: {
                         beginAtZero: true,
                         max: 100,
+                        title: {
+                            display: true,
+                            text: 'Accuracy (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                const data = tooltipItem.raw;
+                                return [
+                                    `Min: ${data.min.toFixed(2)}`,
+                                    `25% Quantile: ${data.q1.toFixed(2)}`,
+                                    `Median: ${data.median.toFixed(2)}`,
+                                    `75% Quantile: ${data.q3.toFixed(2)}`,
+                                    `Max: ${data.max.toFixed(2)}`
+                                ];
+                            }
+                        }
                     }
                 }
             }
