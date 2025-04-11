@@ -17,3 +17,15 @@
     color: white;
   }
   
+  #tts_image{
+    width: 80px;  
+    height: 80px;   
+    border-radius: 50%;
+    object-fit: cover; 
+    cursor: pointer;
+  }
+  
+  #tts_image.speaking {
+  background-color: #34d399; 
+  box-shadow: 0 0 10px #34d399;
+  }

@@ -1,14 +1,29 @@
+:root{
+  --primary-color: #965531;
+  --secondary-color:#3b5c38;
+  --accent-color: #a0da9b;
+  --background-color: #f7f4de;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body{
-    background-color: #f7f4de;
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+  
 }
 
 h1{
   text-align: center;
-  color: #000000;
-
+  color: var(--secondary-color);
   letter-spacing: 3px;
 
-  text-shadow: 0 0 3px #473514, 0 0 5px #ffffff;
+  /* text-shadow: 0 0 3px #473514, 0 0 5px #ffffff; */
 
   font-size: 40px;
 
@@ -28,7 +43,7 @@ h2{
 .doctor_name{
   font-style: italic;
 
-  color: #002c55;
+  color: var(--secondary-color);
 }
 
 .test-table {

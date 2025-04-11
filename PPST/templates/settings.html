@@ -9,9 +9,32 @@
     <link rel="stylesheet" href="{% static 'settings.css' %}">
 </head>
 
+<script>
+  function handleTTSClick() {
+    const img = document.getElementById("tts_image");
+    const textToSpeech = `
+      Select english, spanish, french or german. 
+      text size can be changed to small, medium, large or larger. 
+      proceed button below.`;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeech);
+    utterance.volume = 0.5;
+
+    img.classList.add("speaking");
+
+    utterance.onend = () => {
+      img.classList.remove("speaking");
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+</script>
+
 <body>
     <h1>Settings</h1>
-  
+    <div class="main__img--container">
+      <img src="{% static 'images/audio.png' %}" alt="Audio icon" id="tts_image" onclick="handleTTSClick()">
+    </div>
     <div id="language-button">
         <button type="button" data-lang="en" class="language-button">English</button>
         <button type="button" data-lang="es" class="language-button">Spanish</button>
@@ -73,6 +96,7 @@
   
       let url = "http://127.0.0.1:8000/PPST/testStart/" + "{{ testId }}";
       document.getElementById("startTest").addEventListener("click", function () {
+        window.speechSynthesis.cancel();
         window.location.replace(url); // does not allow going back in browser history
       });
       </script>
