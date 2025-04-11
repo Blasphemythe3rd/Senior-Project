@@ -26,6 +26,7 @@
     background-color: var(--bg-main);
     color: var(--text-primary);
     line-height: 1.5;
+    top: 0px !important;
   }
   
   .container {
@@ -188,4 +189,8 @@
     color: var(--text-muted);
     margin-top: 1.5rem;
     text-align: center;
+  }
+
+  #google_translate_element {
+    display: none;
   }
