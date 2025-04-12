@@ -340,6 +340,102 @@
                 
             });
 
+            document.getElementById("nextButton").addEventListener("click", function () {
+                nextButtonSound.play();
+
+                if (!debugMode) {
+                    nextButton.style.display = "none"; // Hide button after clicking it.
+                }
+
+                // Create the data object that you want to send to the server
+                const data = {
+                    test_id: "{{ test_id }}",
+                    given_stimuli: givenStimuli[currStimuli],        // Get current stimuli string
+                    response: recordedInputs,                        // The user’s response
+                    response_per_click: latencies,                   // The latencies array
+                    enum_type: stimuliEnum[currStimuli]              // The stimuli enum for current stimuli
+                };
+
+                // Use fetch to send a POST request to your Django server
+                fetch("{% url 'PPST:save_response' %}", {
+                    method: 'POST',                           // Use POST method
+                    headers: {
+                        'Content-Type': 'application/json',   // Specify that you're sending JSON data
+                    },
+                    body: JSON.stringify(data),               // Convert data object to JSON string
+                })
+                    .then(response => response.json())          // Parse the JSON response from Django
+                    .then(data => {
+                        console.log('Success:', data);            // Log success message
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);           // Log any error
+                    });
+
+                // Clear variables
+                recordedInputs = "";
+                latencies = [];
+                lastClickTime = 0;
+                firstClick = true;
+                counterRandStim += 1;
+                currChar = 0;
+
+                // Temp variable to fix inputStartTime
+                temp = 0;
+
+                if (counterRandStim === 0) { // Show modal before Practice Question #1
+                    const alertModal = document.getElementById("alertModal");
+                    const modalOkButton = document.getElementById("modalOkButton");
+
+                    alertModal.style.display = "flex";
+                    document.getElementById("modalMessage").textContent = "Get ready for Practice Question #1: 4-Digit Number Span";
+
+                    modalOkButton.addEventListener("click", function () {
+                        alertModal.style.display = "none";
+                        currStimuli += 1;
+                    });
+
+                    return;
+                }
+
+                if (counterRandStim === 1) { // Show modal before Practice Question #2
+                    const alertModal = document.getElementById("alertModal");
+                    const modalOkButton = document.getElementById("modalOkButton");
+
+                    alertModal.style.display = "flex";
+                    document.getElementById("modalMessage").textContent = "Get ready for Practice Question #2: 4-Digit Number/Letter Span";
+
+                    modalOkButton.addEventListener("click", function () {
+                        alertModal.style.display = "none";
+                        currStimuli += 1;
+                    });
+
+                    return;
+                }
+
+                if (counterRandStim === 2) { // Show modal after practice questions
+                    const alertModal = document.getElementById("alertModal");
+                    const modalOkButton = document.getElementById("modalOkButton");
+
+                    alertModal.style.display = "flex";
+                    document.getElementById("modalMessage").textContent = "You are ready to start the test!";
+
+                    modalOkButton.addEventListener("click", function () {
+                        alertModal.style.display = "none"; // Hide the modal
+                        counterRandStim += 1; // Increment to move past the practice phase
+                        currStimuli = numbers.shift(); // Start the actual test
+                    });
+
+                    return;
+                }
+
+                if (counterRandStim === givenStimuli.length) { // Once complete
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}"); // Does not allow going back in browser history
+                } else if (counterRandStim >= 2) {
+                    currStimuli = numbers.shift();
+                }
+            });
+
         });
 
         document.addEventListener('DOMContentLoaded', function () {
