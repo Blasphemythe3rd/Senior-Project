@@ -10,7 +10,44 @@
     <link rel="stylesheet" href="{% static 'initialStyle.css' %}">
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <style>
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+        }
 
+        .modal-content {
+            background-color: #f7f4de;
+            margin: 20% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            text-align: center;
+        }
+
+        .modal-content p {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .modal-content button {
+            background-color: #965531; 
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 
@@ -67,7 +104,13 @@
 
     <button class="submit-button" id="nextButton">Next</button>
 
-
+    <!-- Modal for pausing -->
+    <div id="pauseModal" class="modal hidden">
+        <div class="modal-content">
+            <p>Click OK to continue.</p>
+            <button id="okButton">OK</button>
+        </div>
+    </div>
 
     <script>
         let clickButtonSound = new Audio("{% static 'clickButton.wav' %}")
@@ -223,18 +266,21 @@
             });
 
 
-            document.getElementById("nextButton").addEventListener("click", function () {
+            document.getElementById("nextButton").addEventListener("click", async function () {
                 nextButtonSound.play();
+                if (counterRandStim < 1) {
+                // Show the modal and wait for the user to click "OK"
+                    await showModal("You also have a mix of numbers and letters.");
+                } else if (counterRandStim == 1) {
+                    await showModal("You are now ready to start the test. Click OK to start");
+                }
 
                 if (!debugMode) {
-                    //nextButton.style.display = "none"; // Hide button after clicking it.
-
                     toggleBoxesOff();
                 }
 
-                // Create the data object that you want to send to the server
+                // Proceed with the next stimulus logic
                 const data = {
-                    //test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
                     test_id: "{{ test_id }}",
                     given_stimuli: givenStimuli[currStimuli],        // Get current stimuli string
                     response: recordedInputs,                        // The user’s response
@@ -258,40 +304,29 @@
                         console.error('Error:', error);           // Log any error
                     });
 
-                //clear variables
+                // Clear variables
                 recordedInputs = "";
                 latencies = [];
                 lastClickTime = 0;
                 firstClick = true;
-                counterRandStim += 1;
                 currChar = 0;
 
-                //Temp varible to fix inputStartTime
+                // Temp variable to fix inputStartTime
                 temp = 0;
 
+                // Check the counterRandStim and proceed accordingly
+                counterRandStim += 1;
 
                 if (counterRandStim < 1) {
                     currStimuli += 1;
-
-                }
-
-                else if (counterRandStim == 1) {  //<------------------- practice page goes here.
+                } else if (counterRandStim == 1) {
                     currStimuli += 1;
-
-                }
-
-                else if (counterRandStim == (givenStimuli.length)) { // once complete -- add other test completion code here
-                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}"); // does not allow going back in browser history
-                }
-
-                else if (counterRandStim >= 2) {
+                } else if (counterRandStim == givenStimuli.length) {
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}");
+                } else if (counterRandStim >= 2) {
                     currStimuli = numbers.shift();
-
                 }
-
-
             });
-
         });
 
         function toggleBoxesOn() {
@@ -310,6 +345,28 @@
             wrapper.classList.add("hidden");
             stimDisplay.classList.remove("hidden");
             buttonNext.classList.add("hidden");
+        }
+
+        const nextButton = document.getElementById("nextButton");
+        const pauseModal = document.getElementById("pauseModal");
+        const okButton = document.getElementById("okButton");
+        const inputDisplay = document.getElementById('input-display');
+
+        // Function to show the modal and wait for the "OK" button click
+        function showModal(message) {
+            return new Promise((resolve) => {
+                const modalMessage = document.querySelector("#pauseModal .modal-content p");
+                modalMessage.textContent = message; // Update the modal message dynamically
+
+                pauseModal.classList.remove("hidden");
+                pauseModal.style.display = "block";
+
+                okButton.addEventListener("click", function handleOkClick() {
+                    pauseModal.style.display = "none";
+                    resolve(); // Resolve the promise when "OK" is clicked
+                    okButton.removeEventListener("click", handleOkClick); // Remove the event listener
+                });
+            });
         }
 
     </script>
