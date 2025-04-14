@@ -8,6 +8,7 @@
 <html lang="en">
 <head>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot"></script>
     <link rel="stylesheet" href="{% static 'averageStatistics.css' %}">
 </head>
 <body>
@@ -25,11 +26,10 @@
     <br>
     <h2 class="stimulus-header">Stimulus Accuracy Breakdown</h2>
     <div id="charts-container"></div>
-
     <script>
         var labels = JSON.parse('{{ labels|safe }}');
         var values = JSON.parse('{{ values|safe }}');
-    
+
         var ctx1 = document.getElementById('ageChart').getContext('2d');
         var ageChart = new Chart(ctx1, {
             type: 'pie',
@@ -60,20 +60,36 @@
     </script>
 
     <script>
-        var accuracyLabels = JSON.parse('{{ accuracy_labels|safe }}');
-        var accuracyValues = JSON.parse('{{ accuracy_values|safe }}');
+        const boxplotDataRaw = JSON.parse('{{ accuracy_boxplot|safe }}');
+        const AGELABELS = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100+"];
+        console.log(boxplotDataRaw);
+
+        const boxplotDatasets = AGELABELS.map(age_group => {
+            const stats = boxplotDataRaw[age_group];
+            return {
+                min: stats.min,
+                q1: stats.q1,
+                median: stats.median,
+                q3: stats.q3,
+                max: stats.max
+            };
+        });
     
-        var ctx2 = document.getElementById('accuracyChart').getContext('2d');
-        var accuracyChart = new Chart(ctx2, {
-            type: 'bar',
+        const ctx = document.getElementById('accuracyChart').getContext('2d');
+    
+        new Chart(ctx, {
+            type: 'boxplot',
             data: {
-                labels: accuracyLabels,
+                labels: AGELABELS,
                 datasets: [{
-                    label: 'Average Accuracy (%) by Age Group',
-                    data: accuracyValues,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
+                    label: 'Overall Accuracy',
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    outlierColor: '#999',
+                    padding: 10,
+                    itemRadius: 0,
+                    data: boxplotDatasets
                 }]
             },
             options: {
@@ -82,7 +98,30 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Accuracy (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                const data = tooltipItem.raw;
+                                return [
+                                    `Min: ${data.min.toFixed(2)}`,
+                                    `25% Quantile: ${data.q1.toFixed(2)}`,
+                                    `Median: ${data.median.toFixed(2)}`,
+                                    `75% Quantile: ${data.q3.toFixed(2)}`,
+                                    `Max: ${data.max.toFixed(2)}`
+                                ];
+                            }
+                        }
                     }
                 }
             }
@@ -91,14 +130,18 @@
 
     <script>
         const stimulusAccuracyAvg = JSON.parse('{{ stimulus_accuracy|safe }}');
-        let stimulusCounter = 1;
+        console.log(stimulusAccuracyAvg)
+        const stimulusLatencyAvg = JSON.parse('{{ stimulus_latency|safe }}');
+        console.log(stimulusLatencyAvg)
+        const AGE_LABELS = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100+"];
 
+        let stimulusCounter = 1;
         Object.keys(stimulusAccuracyAvg).forEach(stim_id => {
             const chartDiv = document.createElement('div');
             chartDiv.classList.add('stimulus-chart-container');
 
             const header = document.createElement('h3');
-            header.innerText = `Stimulus ${stimulusCounter} Accuracy by Age Group`;
+            header.innerText = `Stimulus ${stimulusCounter} Accuracy and Latency by Age Group`;
             chartDiv.appendChild(header);
 
             stimulusCounter++;
@@ -108,15 +151,30 @@
 
             document.getElementById('charts-container').appendChild(chartDiv);
 
-            const accuracyData = stimulusAccuracyAvg[stim_id];
+            const accuracyData = stimulusAccuracyAvg[stim_id] || {};
+            const latencyData = stimulusLatencyAvg[stim_id] || {};
+
             const chartData = {
-                labels: labels,
+                labels: AGE_LABELS,
                 datasets: [{
                     label: 'Accuracy (%)',
-                    data: labels.map(age_group => accuracyData[age_group]),
+                    data: AGE_LABELS.map(age_group => accuracyData[age_group] ?? null),
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    yAxisID: 'y',
+                    type: 'bar'
+                },
+                {
+                    label: 'Latency (ms)',
+                    data: AGE_LABELS.map(age_group => latencyData[age_group] ?? null),
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'line',
+                    tension: 0.3,
+                    fill: false
                 }]
             };
 
@@ -126,9 +184,21 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            max: 100,
-                            stepSize: 10
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Accuracy (%)'
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Latency (ms)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
                         }
                     }
                 }
