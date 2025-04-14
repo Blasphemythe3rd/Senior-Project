@@ -10,17 +10,51 @@
 </head>
 
 <body>
+    <script>
+        function handleTTSClick() {
+          const img = document.getElementById("tts_image");
+          const textToSpeech = `
+            Test Instructions. 
+            Order the numbers in ascending order, smallest to largest.
+            When shown a mix of numbers and letters, the sequence should begin with numbers ascending, then letters alphabetically.
+            The test has 12 sequences with 2 practice trials first. 
+            Audio and visual feedback will be provided to help guide you.`;
+
+        
+       
+
+          const utterance = new SpeechSynthesisUtterance(textToSpeech);
+          utterance.volume = 0.5;
+      
+          img.classList.add("speaking");
+      
+          utterance.onend = () => {
+            img.classList.remove("speaking");
+          };
+      
+          window.speechSynthesis.speak(utterance);
+        }
+      </script>
+
     <main class="container">
         <div class="card">
+            <div class="main__img--container">
+                <img src="{% static 'images/audio.png' %}" alt="Audio icon" id="tts_image" onclick="handleTTSClick()">
+            </div>
             <div class="header">
                 <h1>Test Instructions</h1>
             </div>
 
+            <div id="google_translate_element"></div>
+            <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+            <script type="text/javascript">
+                function googleTranslateElementInit() {
+                  new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+                }
+            </script>
+            
             <div class="content">
-                <h2>Task Overview</h2>
-                <p>
-                    You will see sequences of numbers or a mix of numbers and letters.
-                </p>
+              
 
                 <div class="info-box">
                     <h3>Ordering Rules:</h3>
@@ -34,13 +68,8 @@
                 </div>
 
                 <div class="info-box">
-                    <h3>Examples:</h3>
+                    <h3>Example:</h3>
                     <div class="examples">
-                        <div>
-                            <p class="label">Numbers only:</p>
-                            <p class="code">Given: 9 3 7 2</p>
-                            <p class="code">Correct order: 2 3 7 9</p>
-                        </div>
                         <div>
                             <p class="label">Mix of numbers and letters:</p>
                             <p class="code">Given: F 2 R 5</p>
@@ -52,7 +81,6 @@
                 <h2>Test Format</h2>
                 <ul>
                     <li>The test has 12 sequences with 2 practice trials first.</li>
-                    <li>Click symbols in the correct order to respond.</li>
                     <li>Audio & Visual feedback will be provided to help guide you.</li>
                 </ul>
 
@@ -62,8 +90,9 @@
                 </div>
 
                 <script>
-                    let url = "http://127.0.0.1:8000/PPST/settings/" + "{{ testId }}";
+                    let url = "http://127.0.0.1:8000/PPST/testScreen/" + "{{ testId }}";
                     document.getElementById("startTest").addEventListener("click", function () {
+                        window.speechSynthesis.cancel();
                         window.location.replace(url); // does not allow going back in browser history
                     });
                 </script>

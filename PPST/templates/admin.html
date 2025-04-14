@@ -118,6 +118,7 @@
             margin-top: 20px;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function getCookie(name) {
             let cookieValue = null;
@@ -133,6 +134,7 @@
             }
             return cookieValue;
         }
+    
         const csrftoken = getCookie('csrftoken');
     </script>
 </head>
@@ -151,11 +153,14 @@
                 <li class="navbar_item">
                     <a href="javascript:void(0);" class="navbar_links" onclick="showTab('add')">Add Doctor</a>
                 </li>
+                <li class="navbar_item">
+                    <a href="javascript:void(0);" class="navbar_links" onclick="showTab('average_statistics')">Average Statistics</a>
+                </li>
             </ul>
         </div>
     </nav>
 
-    <!-- Login Page (Centered) -->
+    <!-- Login Page -->
     <div id="loginPage">
         <form id="loginForm">
             {% csrf_token %}
@@ -191,7 +196,7 @@
             </form>
         </div>
 
-        <!-- Doctors List Section -->
+        <!-- Doctors List -->
         <div id="doctorListTab" style="display: none;">
             <h2>Doctors List</h2>
             <ul id="doctorList">
@@ -210,6 +215,79 @@
                 <p>Select a doctor to see their associated tests.</p>
             </div>
         </div>
+
+        <div id="averageStatisticsTab" style="display: none;">
+            
+            <h2>Overall Average Statistics</h2>
+            <p><strong>Total Tests Conducted:</strong> {{ total_tests }}</p>
+            <p><strong>Average Patient Age:</strong> {{ average_patient_age }}</p>
+            <p><strong>Overall Average Accuracy:</strong> {{ average_accuracy }}%</p>
+        
+            <h2>Age Distribution</h2>
+            <canvas id="ageChart" width="400" height="200"></canvas>
+        
+            <h2>Accuracy by Age Group</h2>
+            <canvas id="accuracyChart" width="400" height="200"></canvas>
+        
+            <script>
+                // Age Distribution Chart
+                const ageLabels = JSON.parse('{{ age_labels|safe }}');
+                const ageValues = JSON.parse('{{ age_values|safe }}');
+        
+                const ageCtx = document.getElementById('ageChart').getContext('2d');
+                const ageChart = new Chart(ageCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ageLabels,
+                        datasets: [{
+                            label: 'Number of Patients',
+                            data: ageValues,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+        
+                // Accuracy by Age Group Chart
+                const accuracyLabels = JSON.parse('{{ accuracy_labels|safe }}');
+                const accuracyValues = JSON.parse('{{ accuracy_values|safe }}');
+        
+                const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+                const accuracyChart = new Chart(accuracyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: accuracyLabels,
+                        datasets: [{
+                            label: 'Accuracy (%)',
+                            data: accuracyValues,
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            </script>
+        </div>
+
+
     </div>
 
     <script>
@@ -241,7 +319,7 @@
                 if (data.success) {
                     document.getElementById('loginPage').style.display = 'none';
                     document.getElementById('adminPage').style.display = 'block';
-                    showTab('add');  // Default to Add Doctor tab
+                    showTab('add');
                 } else {
                     document.getElementById('loginError').textContent = data.error;
                 }
@@ -253,50 +331,64 @@
         });
 
         // Handle Add Doctor form submission
-        document.getElementById('addDoctorForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+document.getElementById('addDoctorForm').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-            let formData = new FormData(this);
-            let data = {};
-            formData.forEach((value, key) => {
-                data[key] = value;
-            });
+    let formData = new FormData(this);
+    let data = {};
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
 
-            fetch('/PPST/admin/add_doctor/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    alert('Doctor added successfully!');
-                    location.reload();
-                } else {
-                    alert('Error adding doctor: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error adding doctor:', error);
-                alert('An error occurred. Please try again.');
-            });
-        });
+    fetch('/PPST/admin/add_doctor/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken // Ensuring correct CSRF token header
+        },
+        body: JSON.stringify(data),
+        credentials: 'same-origin' // Ensuring the request includes cookies
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert('Doctor added successfully!');
+            location.reload();
+        } else {
+            alert('Error adding doctor: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding doctor:', error);
+        alert('An error occurred. Please try again.');
+    });
+});
+
 
         // Toggle between Add Doctor and List Doctors tabs
         function showTab(tab) {
-            if (tab === 'add') {
-                document.getElementById('addDoctorTab').style.display = 'block';
-                document.getElementById('doctorListTab').style.display = 'none';
-                document.getElementById('testListTab').style.display = 'none'; // Hide tests section when on Add Doctor
-            } else if (tab === 'list') {
-                document.getElementById('addDoctorTab').style.display = 'none';
-                document.getElementById('doctorListTab').style.display = 'block';
-                document.getElementById('testListTab').style.display = 'block'; // Show tests section when on Doctors List
-            }
+        // Hide all tabs
+        document.getElementById('addDoctorTab').style.display = 'none';
+        document.getElementById('doctorListTab').style.display = 'none';
+        document.getElementById('testListTab').style.display = 'none';
+        document.getElementById('averageStatisticsTab').style.display = 'none';
+
+        // Show the selected tab
+        if (tab === 'add') {
+            document.getElementById('addDoctorTab').style.display = 'block';
+        } else if (tab === 'list') {
+            document.getElementById('doctorListTab').style.display = 'block';
+            document.getElementById('testListTab').style.display = 'block';
+        } else if (tab === 'average_statistics') {
+            document.getElementById('averageStatisticsTab').style.display = 'block';
         }
+    }
+
+    // Set the default tab to "Add Doctor" when the page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        showTab('add');
+    });
+
 
         // Fetch tests for the selected doctor
         function fetchDoctorTests(doctorId) {
@@ -316,10 +408,8 @@
 
             let testList = document.getElementById("testList");
 
-            // Clear the test list before appending new data
             testList.innerHTML = "";
 
-            // Display the doctor's name
             testList.innerHTML = `<h3>Tests for Dr. ${data.doctor}</h3>`;
 
             if (data.tests && data.tests.length > 0) {
@@ -327,7 +417,6 @@
                 data.tests.forEach(test => {
                     let li = document.createElement("li");
 
-                    // Format the date and time using JavaScript's toLocaleString()
                     const timeStarted = test.time_started ? new Date(test.time_started).toLocaleString('en-US') : 'N/A';
                     const timeEnded = test.time_ended ? new Date(test.time_ended).toLocaleString('en-US') : 'N/A';
 

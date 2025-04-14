@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseNotFound
 from django.views.decorators.http import require_GET, require_POST
@@ -19,6 +20,9 @@ import tempfile
 import json
 import pandas as pd
 import random
+from datetime import datetime
+from django.db.models import Avg
+from openpyxl import Workbook, load_workbook # type: ignore
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -63,14 +67,11 @@ reset_tokens = {}
 def practiceTest(request):
     return render(request,'practiceTest.html')
 
-def testScreen(request):
-    stimuli_objects = Given_Stimuli.objects.all()
-    stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
+# def testScreen(request):
+#     stimuli_objects = Given_Stimuli.objects.all()
+#     stimuli_list = [stimulus.given_stimuli for stimulus in stimuli_objects]
 
-    return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
-
-
-
+#     return render(request, 'testScreen.html', {'stimuli_list': stimuli_list})
 
 def doctorHomePage(request, username):
     doctors = Doctor.objects.first()
@@ -112,7 +113,7 @@ def testScreen(request, testId):
 
     return render(request, 'testScreen.html', {
         'stimuli_list': stimuli_list,
-        'test_id': test_instance,
+        'test_id': test_instance.test_id,
         'stimuli_objects': stimuli_objects,
         'stimuli_enum': stimuli_enum
     })
@@ -138,7 +139,7 @@ def createTest(request):
             new_test = Test.objects.create(patient_age=patient_age, doctor=doctor) #create a new test object
             
             subject = "Test Link for PPST"
-            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/testStart/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
+            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/settings/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
             
             send_mail(subject, message, settings.EMAIL_HOST_USER, [recipient_email])
 
@@ -176,7 +177,6 @@ def logout_view(request):
     return redirect('PPST:doctor_login')
 
 def testInfo(request):
-    QUESTIONS_PER_TEST = 14
     percentages = []
     notEmpty = False
 
@@ -199,66 +199,62 @@ def testInfo(request):
     })
 
 def download_test(request, test_id):
-    spreadsheet = []
-
-    # https://www.geeksforgeeks.org/writing-csv-files-in-python/ 
     test = Test.objects.get(test_id = test_id)
+    
+    # uses django's os to grab the template independent of OS
+    template_file_path = os.path.join(
+        settings.BASE_DIR,  # base directory is the root of the project
+        'PPST', 'test_data_template.xlsx' # base_dir/PPST/test_data_template.xlsx
+    )
+
+    wb = load_workbook(filename= template_file_path)
+
+    ws = wb["Raw Data"]
+
+    test_info = [test.test_id, test.time_started.replace(tzinfo=None), test.time_ended.replace(tzinfo=None), test.status, test.patient_age]
+
+    cell_range = ws['A2': 'E2']
+    index = 0
+    for row in cell_range:
+        for cell in row:
+            cell.value = test_info[index]
+            index += 1
+        
     responses = Stimuli_Response.objects.filter(test = test)
-    response_times = []
+    response_data = []
     stimulus_num = 1
+    latencies = []
     for response in responses:
-        response_times.extend(response.response_per_click)
-        dict = { # per stimulus part
-            "Stimulus #": stimulus_num,
-            "Response Time Per Click": response.response_per_click,
-            "Responses": response.response,
-            "Total Stimuli Time" : sum(response.response_per_click)
-        }
+        response_list = [stimulus_num, response.given.correct_order, response.response, str(response.response_per_click), response.enum_type]
+        response_data.append(response_list)
+        latencies.append(response.response_per_click)
         stimulus_num += 1
 
-        spreadsheet.append(dict)
+    for row in response_data:
+        ws.append(row)
 
-    avg_response = sum(response_times)/len(response_times)
-    test_info = { # overall test info
-            "Test ID": test.test_id,
-            "Time Start": test.time_started,
-            "Time End": test.time_ended,
-            "Status": test.status,
-            "Age": test.patient_age, 
-            "Accuracy %": _calculate_accuracies(test),
-            "Average Response Time": avg_response
-        }
+    ws2 = wb["Data Insights"]
     
-    # stores CSV as temporary file on local machine, not in project (debugged w/ chatgpt)
-    with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=False) as csvfile:
-        writer = csv.writer(csvfile)
-        # create top table
-        writer.writerow(["Test ID", "Time Start", "Time End", "Status", "Age", "Accuracy %", "Average Response Time"])
-        writer.writerow([
-            test_info["Test ID"],
-            test_info["Time Start"],
-            test_info["Time End"],
-            test_info["Status"],
-            test_info["Age"],
-            test_info["Accuracy %"],
-            test_info["Average Response Time"]
-        ])
+    index = 0
+    for row in ws2.iter_cols(min_row=2, min_col = 4, max_col = 4, max_row = 15):
+        for cell in row:
+            cell.value = sum(latencies[index]) / len(latencies[index])
+            index += 1
 
-        writer.writerow([])
-        # add bottom table
-        writer.writerow(["Stimulus #", "Response Time Per Click", "Responses", "Total Stimuli Time"])
-        for row in spreadsheet: # add to csv row by row
-            writer.writerow([
-                row["Stimulus #"],
-                row["Response Time Per Click"],
-                row["Responses"],
-                row["Total Stimuli Time"]
-            ])
+    index = 0
+    for row in ws2.iter_cols(min_row=2, min_col = 3, max_col = 3, max_row = 15):
+        for cell in row:
+            cell.value = sum(latencies[index])
+            index += 1
 
+
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        wb.save(tmp.name)
+        tmp.seek(0)
+        stream = tmp.read()
+        tmpfile_path = tmp.name
     
-    tmpfile_path = csvfile.name
-
-    response = FileResponse(open(tmpfile_path, 'rb'), as_attachment=True, filename="test_data.csv")
+    response = FileResponse(open(tmpfile_path, 'rb'), as_attachment=True, filename="test_data.xlsx")
 
     return response
 
@@ -299,8 +295,103 @@ def admin_login(request):
         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 def admin_page(request):
-    doctors = Doctor.objects.all()  
-    return render(request, "admin.html", {"doctors": doctors})
+     try:
+         # Fetch all tests
+         tests = Test.objects.all()
+ 
+         # Default values if no tests exist
+         total_tests = tests.count()
+         average_patient_age = tests.aggregate(Avg('patient_age'))['patient_age__avg'] or 0
+         total_accuracy = 0
+         total_responses = 0
+ 
+         # Calculate overall accuracy
+         for test in tests:
+             stimuli_responses = Stimuli_Response.objects.filter(test=test)
+             for response in stimuli_responses:
+                 if response.response and response.given and response.given.given_stimuli:
+                     total_responses += 1
+                     if str(response.response) == str(response.given.given_stimuli):  # Ensure both are strings for comparison
+                         total_accuracy += 1
+ 
+         average_accuracy = (total_accuracy / total_responses * 100) if total_responses > 0 else 0
+ 
+         # Fetch age distribution and accuracy data
+         age_data = { "0-9": 0, "10-19": 0, "20-29": 0, "30-39": 0, "40-49": 0,
+                      "50-59": 0, "60-69": 0, "70-79": 0, "80-89": 0, "90+": 0 }
+         accuracy_data = {key: 0 for key in age_data.keys()}  # Initialize accuracy as 0
+ 
+         if tests.exists():
+             # Convert to DataFrame
+             df = pd.DataFrame({'patient_age': list(tests.values_list('patient_age', flat=True))})
+ 
+             # Define age bins and labels
+             bins = [0, 9, 19, 29, 39, 49, 59, 69, 79, 89, float('inf')]
+             labels = ["0-9", "10-19", "20-29", "30-39", "40-49", 
+                       "50-59", "60-69", "70-79", "80-89", "90+"]
+ 
+             # Categorize ages into bins
+             df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
+ 
+             # Count occurrences in each group
+             age_data = df['age_group'].value_counts().sort_index().to_dict()
+ 
+             # Initialize accuracy tracking
+             accuracy_data = {key: [] for key in labels}  
+ 
+             # Fetch all responses and match them to the correct answers
+             responses = Stimuli_Response.objects.select_related('given')
+ 
+             for response in responses:
+                 correct = response.given.correct_order.strip()
+                 user_response = response.response.strip()
+ 
+                 if len(correct) == len(user_response) and len(correct) > 0:
+                     # Calculate exact character match percentage
+                     match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
+                     accuracy_percentage = (match_count / len(correct)) * 100
+                 else:
+                     accuracy_percentage = 0  # If lengths don't match, assume 0% accuracy
+ 
+                 # Get the corresponding test age and categorize it
+                 age = response.test.patient_age
+                 age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
+ 
+                 if age_group in accuracy_data:
+                     accuracy_data[age_group].append(accuracy_percentage)
+ 
+             # Compute average accuracy for each age group
+             for key in accuracy_data.keys():
+                 if accuracy_data[key]:  # Avoid division by zero
+                     accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
+                 else:
+                     accuracy_data[key] = 0  # If no data, default to 0%
+ 
+         # Pass data to the template
+         doctors = Doctor.objects.all()
+         return render(request, "admin.html", {
+             "doctors": doctors,
+             "total_tests": total_tests,
+             "average_patient_age": average_patient_age,
+             "average_accuracy": f"{average_accuracy:.2f}",
+             "age_labels": json.dumps(list(age_data.keys())),
+             "age_values": json.dumps(list(age_data.values())),
+             "accuracy_labels": json.dumps(list(accuracy_data.keys())),
+             "accuracy_values": json.dumps(list(accuracy_data.values())),
+         })
+ 
+     except Exception as e:
+         return render(request, "admin.html", {
+             "error": f"An error occurred: {str(e)}",
+             "doctors": [],
+             "total_tests": 0,
+             "average_patient_age": 0,
+             "average_accuracy": 0,
+             "age_labels": json.dumps([]),
+             "age_values": json.dumps([]),
+             "accuracy_labels": json.dumps([]),
+             "accuracy_values": json.dumps([]),
+         })
 
 @require_GET
 def list_doctors(request):
@@ -370,7 +461,7 @@ def doctor_tests(request, doctor_id):
         return JsonResponse({"error": "Doctor not found"}, status=404)
     
     
-@require_POST
+@csrf_exempt
 def add_doctor(request):
     """Adds a new doctor, ensuring a unique username in 'doctor#' format."""
     try:
@@ -390,18 +481,85 @@ def add_doctor(request):
             doctor_count += 1
 
         new_doctor = Doctor.objects.create(username=username, first_name=first_name, last_name=last_name, email=email)
-        new_doctor.set_password("defaultpassword123")  
+        default_password = "defaultpassword123"
+        new_doctor.set_password(default_password)
         new_doctor.save()
-
+ 
+         # Prepare email content
+        subject = "Your Doctor Account Credentials"
+        message = (
+             f"Hello {first_name},\n\n"
+             f"Your account has been created successfully.\n\n"
+             f"Username: {username}\n"
+             f"Password: {default_password}\n\n"
+             f"Please change your password after logging in."
+         )
+ 
+         # Attempt to send email
+        try:
+             send_mail(subject, message, settings.EMAIL_HOST_USER, [email])
+             email_status = "Email sent successfully!"
+        except Exception:
+             email_status = "Email doesn't exist."
+ 
         return JsonResponse({
-            "message": "Doctor added successfully!",
-            "doctor_id": new_doctor.id,
-            "username": username
+             "message": f"Doctor added successfully! {email_status}",
+             "doctor_id": new_doctor.id,
+             "username": username
         })
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
+@require_GET
+def overall_average_statistics(request):
+     try:
+         # Fetch all tests (or apply any filter if needed)
+         tests = Test.objects.all()
+ 
+         if not tests:
+             return render(request, "admin.html", {
+                 "total_tests": 0,
+                 "average_patient_age": 0,
+                 "average_accuracy": 0,
+             })
+ 
+         total_tests = tests.count()
+ 
+         # Calculate overall average patient age
+         average_patient_age = tests.aggregate(Avg('patient_age'))['patient_age__avg']
+ 
+         # Calculate overall average accuracy (example based on response data)
+         total_accuracy = 0
+         total_responses = 0
+ 
+         # Loop through tests to accumulate accuracy data
+         for test in tests:
+             stimuli_responses = Stimuli_Response.objects.filter(test=test)
+             for response in stimuli_responses:
+                 total_responses += 1
+                 # Compare the response with given stimuli or correct order (whichever is applicable)
+                 if response.response == response.given.given_stimuli:  # Assuming given_stimuli holds the correct answer
+                     total_accuracy += 1
+ 
+         # Calculate overall accuracy (percentage)
+         average_accuracy = (total_accuracy / total_responses * 100) if total_responses > 0 else 0
+ 
+         # Render the admin.html template with the calculated data
+         return render(request, "admin.html", {
+             "total_tests": total_tests,
+             "average_patient_age": average_patient_age,
+             "average_accuracy": f"{average_accuracy:.2f}",
+         })
+ 
+     except Exception as e:
+         return render(request, "admin.html", {
+             "error": f"An error occurred: {str(e)}",
+             "total_tests": 0,
+             "average_patient_age": 0,
+             "average_accuracy": 0,
+         })
 
 def doctorHomePage(request):
     doctor = request.user
@@ -615,10 +773,31 @@ def create_notification_test_completed(request):
     #Checks if not POST
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
-def testComplete(request):
+def testComplete(request, testId):
+    # get current date time
+    now = datetime.now()
+    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    test_instance = Test.objects.get(test_id=testId)
+    
+    test_instance.status = 2
+    test_instance.time_ended = current_datetime # gives console warning, but formats date correctly
+
+    Test.save(test_instance)
+
     return render(request, "testComplete.html", {})
 
 def testStart(request, testId):
+    now = datetime.now()
+    current_datetime = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    test_instance = Test.objects.get(test_id=testId)
+    
+    test_instance.status = 1
+    test_instance.time_started = current_datetime
+
+    Test.save(test_instance)
+    
     return render(request, "instructions.html", {
         'testId' : testId
     })

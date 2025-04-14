@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PPST Test</title>
     {% load static %}
-    <link rel="stylesheet" href=" {% static 'initialStyle.css' %}">
+    <link rel="stylesheet" href="{% static 'initialStyle.css' %}">
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <style>
 
@@ -14,59 +15,82 @@
 </head>
 
 <body>
+
+    {% comment %}
+    <script>   //for changing font, does not work
+        fontSize = localStorage.getItem('fontSize');
+        console.log(fontSize);
+        const digitBoxes = document.getElementsByClassName('digit-box');
+
+        for (let i = 0; i < digitBoxes.length; i++) {
+            digitBoxes[i].style.fontSize = fontSize;
+        }
+    </script> {% endcomment %}
+
+
     <div class="banner">
         <p class="banner-text">Philadelphia Pointing Span Test: Test page</p>
     </div>
     <div class="box" id="input-display"></div>
-    <div class="container">
-        <div class="digit-box">2</div>
-        <div class="digit-box">3</div>
-        <div class="digit-box">4</div>
-        <div class="digit-box">5</div>
-    </div>
-    <div class="container">
-        <div class="digit-box">6</div>
-        <div class="digit-box">7</div>
-        <div class="digit-box">8</div>
-        <div class="digit-box">9</div>
-    </div>
-    <div class="container">
-        <div class="letter-box">A</div>
-        <div class="letter-box">F</div>
-        <div class="letter-box">H</div>
-        <div class="letter-box">N</div>
-    </div>
-    <div class="container">
-        <div class="letter-box">Q</div>
-        <div class="letter-box">R</div>
-        <div class="letter-box">X</div>
-        <div class="letter-box">Y</div>
+    
+    <div id="ButtonWrap">
+        <div class="container">
+            <div class="digit-box">2</div>
+            <div class="digit-box">3</div>
+            <div class="digit-box">4</div>
+            <div class="digit-box">5</div>
+        </div>
+        <div class="container">
+            <div class="digit-box">6</div>
+            <div class="digit-box">7</div>
+            <div class="digit-box">8</div>
+            <div class="digit-box">9</div>
+        </div>
+        <div class="container">
+            <div class="letter-box">A</div>
+            <div class="letter-box">F</div>
+            <div class="letter-box">H</div>
+            <div class="letter-box">N</div>
+        </div>
+        <div class="container">
+            <div class="letter-box">Q</div>
+            <div class="letter-box">R</div>
+            <div class="letter-box">X</div>
+            <div class="letter-box">Y</div>
+        </div>
+
+
     </div>
     <!-- converts django list to js readable json format -->
     {{ stimuli_list|json_script:"stimuli-data" }}
     {{ stimuli_enum|json_script:"stimuli-enum" }}
- 
-    <button id="nextButton">Next</button>
-    
+
+    <button class="submit-button" id="nextButton">Next</button>
+
+
+
     <script>
+        let clickButtonSound = new Audio("{% static 'clickButton.wav' %}")
+        let nextButtonSound = new Audio("{% static 'nextButton.mp3' %}")
+
         const stimuliTTS = new SpeechSynthesisUtterance();
         let savedLang = localStorage.getItem('selectedLanguage');
-        
-        if(savedLang === 'es') {
-            var voices = window.speechSynthesis.getVoices(); 
-            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+
+        if (savedLang === 'es') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
             stimuliTTS.lang = 'es-US'; // set to spanish
-        } else if(savedLang === 'en') { 
-            var voices = window.speechSynthesis.getVoices(); 
-            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+        } else if (savedLang === 'en') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
             stimuliTTS.lang = 'en-US'; // set to english 
-        } else if(savedLang === 'fr') { 
-            var voices = window.speechSynthesis.getVoices(); 
-            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+        } else if (savedLang === 'fr') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
             stimuliTTS.lang = 'fr-FR'; // set to english 
-        } else if(savedLang === 'de') { 
-            var voices = window.speechSynthesis.getVoices(); 
-            stimuliTTS.voice = voices.find(voice => voice.name === ''); 
+        } else if (savedLang === 'de') {
+            var voices = window.speechSynthesis.getVoices();
+            stimuliTTS.voice = voices.find(voice => voice.name === '');
             stimuliTTS.lang = 'de-DE'; // set to english 
         }
 
@@ -77,10 +101,15 @@
 
         const stimuliEnum = JSON.parse(document.getElementById('stimuli-enum').textContent);
 
-        const nextButton = document.getElementById("nextButton");
-        
-        nextButton.style.display = "none"; // Hide button
-       
+        //const nextButton = document.getElementById("nextButton");
+
+        debugMode = false; // change for 'production'...so i dont have to wait for the test 
+
+        if (!debugMode) {
+            //nextButton.style.display = "none"; // Hide button
+
+            toggleBoxesOff();
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const inputDisplay = document.getElementById('input-display');
@@ -88,12 +117,13 @@
             // Function to display the next character in the stimuli
             currChar = 0;
             currStimuli = 0;
+            counterRandStim = 0;
             currGivenStim = null;
-            
+
             //Temp varible to fix inputStartTime
             temp = 0;
             function showNextStimulus(charIndex, stimIndex) {
-                if (currStimuli >= givenStimuli.length) {
+                if (counterRandStim >= givenStimuli.length) {
                     return;
                 }
 
@@ -103,13 +133,14 @@
                 currGivenStim = currentStimString;
                 if (currChar < currentStimString.length) {
                     inputDisplay.textContent = givenStimuli[stimIndex].charAt(charIndex);
-                    stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex); // sets text to be spoken to stimuli
+                    stimuliTTS.text = givenStimuli[stimIndex].charAt(charIndex).toLowerCase(); // sets text to be spoken to stimuli
                     window.speechSynthesis.speak(stimuliTTS);
                     currChar += 1;
                 } else {
                     inputDisplay.textContent = " ";
-                    nextButton.style.display = "block"; // show button
-                    
+                    //nextButton.style.display = "block"; // show button
+                    toggleBoxesOn();
+
                     //Temp varible to fix inputStartTime
                     temp += 1;
                     if (temp < 2) {
@@ -123,24 +154,35 @@
 
             // Trigger the next stimulus display every second
             const interval = setInterval(() => {
-                
+
                 showNextStimulus(currChar, currStimuli);
 
-            }, 1000);
+            }, 2000); //Change this value to speed up or slow down stimuli character looping
 
 
             // Stop the display when all characters have been shown
             setTimeout(() => {
                 clearInterval(interval.length);  // Stop the interval after all stimuli have been displayed
-            }, givenStimuli.length * 1000);  // Stop after all characters have been displayed
+            }, givenStimuli.length * 2000);  // Stop after all characters have been displayed
 
         });
 
+
+
+
         let recordedInputs = "";  // Stores the clicked characters
-        
         lastClickTime = 0;
         firstClick = true;
         latencies = []; // will get stored for each response object
+
+        const numbers = Array.from({ length: 12 }, (_, i) => i + 2); //sets array of 2-13
+
+        // randomizes stimuli numbers
+        for (let i = numbers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+        }
+
 
         document.addEventListener('DOMContentLoaded', function () {
             const boxes = document.querySelectorAll('.digit-box, .letter-box');
@@ -149,46 +191,51 @@
             //Settings for each stimuli button ("2, 3, 4, etc..")
             boxes.forEach(box => {
                 box.addEventListener('click', function () {
-                    
-                    if ( nextButton.style.display == "block"){
+                    clickButtonSound.play();
 
-                        if (!this.classList.contains('clicked')) {
-                            this.classList.add('clicked');
+                    if (nextButton.style.display != "hidden") {
 
-                            let character = this.textContent.trim();  // Get the clicked character
-                            let timestamp = new Date().toISOString(); // Get timestamp in ISO format
+                        this.classList.add('clicked');
 
-                            // Append to the recorded strings, separating entries with commas
-                            recordedInputs += (recordedInputs ? "" : "") + character;
-                        
-                            if(firstClick){ // might need change...takes time since stimuli ended to now
-                                firstClick = false;
-                                
-                                diff = Date.now() - inputStartTime;
-                                
-                            } else {
-                                diff = Date.now() - lastClickTime;
-                            }
-                            lastClickTime = Date.now();
-                            latencies.push(diff / 1000); // ms -> seconds
-                        
-                        
-                            setTimeout(() => {
-                                this.classList.remove('clicked');
-                            }, 100);  // Wait for 100ms
+                        let character = this.textContent.trim();  // Get the clicked character
+                        let timestamp = new Date().toISOString(); // Get timestamp in ISO format
+
+                        // Append to the recorded strings, separating entries with commas
+                        recordedInputs += (recordedInputs ? "" : "") + character;
+
+                        if (firstClick) { // might need change...takes time since stimuli ended to now
+                            firstClick = false;
+
+                            diff = Date.now() - inputStartTime;
+
+                        } else {
+                            diff = Date.now() - lastClickTime;
                         }
+                        lastClickTime = Date.now();
+                        latencies.push(diff / 1000); // ms -> seconds
+
+
+                        setTimeout(() => {
+                            this.classList.remove('clicked');
+                        }, 100);  // Wait for 100ms
                     }
                 });
             });
 
-            
+
             document.getElementById("nextButton").addEventListener("click", function () {
-                
-                nextButton.style.display = "none"; // Hide button after clicking it. 
+                nextButtonSound.play();
+
+                if (!debugMode) {
+                    //nextButton.style.display = "none"; // Hide button after clicking it.
+
+                    toggleBoxesOff();
+                }
 
                 // Create the data object that you want to send to the server
                 const data = {
-                    test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
+                    //test_id: window.location.pathname.split('/')[3], // Extract test_id from the URL
+                    test_id: "{{ test_id }}",
                     given_stimuli: givenStimuli[currStimuli],        // Get current stimuli string
                     response: recordedInputs,                        // The user’s response
                     response_per_click: latencies,                   // The latencies array
@@ -211,23 +258,59 @@
                         console.error('Error:', error);           // Log any error
                     });
 
-                    //clear variables
+                //clear variables
                 recordedInputs = "";
                 latencies = [];
                 lastClickTime = 0;
                 firstClick = true;
-                currStimuli += 1;
+                counterRandStim += 1;
                 currChar = 0;
 
                 //Temp varible to fix inputStartTime
-                temp=0;
+                temp = 0;
 
-                if (currStimuli == givenStimuli.length) { // once complete -- add other test completion code here
-                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/"); // does not allow going back in browser history
+
+                if (counterRandStim < 1) {
+                    currStimuli += 1;
+
                 }
+
+                else if (counterRandStim == 1) {  //<------------------- practice page goes here.
+                    currStimuli += 1;
+
+                }
+
+                else if (counterRandStim == (givenStimuli.length)) { // once complete -- add other test completion code here
+                    window.location.replace("http://127.0.0.1:8000/PPST/testComplete/" + "{{ test_id }}"); // does not allow going back in browser history
+                }
+
+                else if (counterRandStim >= 2) {
+                    currStimuli = numbers.shift();
+
+                }
+
+
             });
-        
+
         });
+
+        function toggleBoxesOn() {
+            const wrapper = document.getElementById("ButtonWrap");
+            const buttonNext = document.getElementById("nextButton");
+            const stimDisplay = document.getElementById("input-display");
+            wrapper.classList.remove("hidden");
+            stimDisplay.classList.add("hidden");
+            buttonNext.classList.remove("hidden");
+        }
+
+        function toggleBoxesOff() {
+            const wrapper = document.getElementById("ButtonWrap");
+            const buttonNext = document.getElementById("nextButton");
+            const stimDisplay = document.getElementById("input-display");
+            wrapper.classList.add("hidden");
+            stimDisplay.classList.remove("hidden");
+            buttonNext.classList.add("hidden");
+        }
 
     </script>
 

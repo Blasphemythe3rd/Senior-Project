@@ -17,9 +17,10 @@ def generate_test_id(): # this generates the random test id
         if not Test.objects.filter(test_id=test_id).exists(): #check if the test id already exists
             return test_id
 
-class Test(models.Model):
+class Test(models.Model): 
+    #should we add a date assigned? 
     test_id = models.CharField(max_length=8, unique=True, default=generate_test_id) #default is needed it also has a unique constraint
-    time_started = models.DateTimeField(null=True, auto_now_add = True) 
+    time_started = models.DateTimeField(null=True, blank=True) 
     time_ended = models.DateTimeField(null=True, blank=True) # had to give null and blank to have it work 
     status = models.IntegerField(default = 0) # 0 = not taken
     patient_age = models.IntegerField() 
