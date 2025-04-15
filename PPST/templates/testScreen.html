@@ -154,7 +154,7 @@
             toggleBoxesOff();
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', async function () {
             const inputDisplay = document.getElementById('input-display');
 
             // Function to display the next character in the stimuli
@@ -162,6 +162,10 @@
             currStimuli = 0;
             counterRandStim = 0;
             currGivenStim = null;
+
+            if (counterRandStim == 0) {
+                await showModal("Here is your first practice question. Click on the following numbers in order from lowest to highest.");
+            }
 
             //Temp varible to fix inputStartTime
             temp = 0;
@@ -270,7 +274,7 @@
                 nextButtonSound.play();
                 if (counterRandStim < 1) {
                 // Show the modal and wait for the user to click "OK"
-                    await showModal("You also have a mix of numbers and letters.");
+                    await showModal("You also have a mix of numbers and letters. Click on the numbers from lowest to highest first, then click on the letters from earliest to last in the alphabet.");
                 } else if (counterRandStim == 1) {
                     await showModal("You are now ready to start the test. Click OK to start");
                 }
