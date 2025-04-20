@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "@sgratzl/chartjs-chart-boxplot": "^4.4.4",
+    "chart.js": "^4.4.8",
+    "vite": "^6.2.6"
+  },
+  "name": "senior-project",
+  "version": "1.0.0",
+  "description": "<h3>Installation Instructions</h3>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Blasphemythe3rd/Senior-Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Blasphemythe3rd/Senior-Project/issues"
+  },
+  "homepage": "https://github.com/Blasphemythe3rd/Senior-Project#readme"
+}
