@@ -60,11 +60,10 @@
           <p>Sample text to see font sizes.</p>
         </div>
 
-        <div id="controls" class="actions text-size-buttons">
-          <button onclick="changeFontSize('small')">Small</button>
-          <button onclick="changeFontSize('medium')">Medium</button>
-          <button onclick="changeFontSize('large')">Large</button>
-          <button onclick="changeFontSize('larger')">Larger</button>
+        <div id="text-size-button" class="actions">
+          <button type="button" class="text-size-button" onclick="changeFontSize('medium')">Medium</button>
+          <button type="button" class="text-size-button" onclick="changeFontSize('large')">Large</button>
+          <button type="button" class="text-size-button" onclick="changeFontSize('larger')">Larger</button>
         </div>
       </div>
 
@@ -90,26 +89,40 @@
       });
     });
 
+    const textSizeButtons = document.querySelectorAll('.text-size-button');
+
+    textSizeButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        textSizeButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+      })
+    })
+
     function changeFontSize(size) {
       var content = document.getElementById('content');
       let fontSize;
       switch (size) {
-        case 'small':
-          fontSize = '18px';
-          break;
         case 'medium':
-          fontSize = '24px';
+          fontSizeStim = '250px';
+          fontSizeButton = '50px';
+          fontSize = '10px'
           break;
         case 'large':
-          fontSize = '28px';
+          fontSizeStim = '475px';
+          fontSizeButton = '65px';
+          fontSize = '20px'
           break;
         case 'larger':
-          fontSize = '30px';
+          fontSizeStim = '515px';
+          fontSizeButton = '80px';
+          fontSize = '32px'
           break;
       }
 
       content.style.fontSize = fontSize;
-      localStorage.setItem('fontSize', fontSize);
+      
+      localStorage.setItem('fontSizeStim', fontSizeStim);
+      localStorage.setItem('fontSizeButton', fontSizeButton)
     }
     let url = "http://127.0.0.1:8000/PPST/testStart/" + "{{ testId }}";
       document.getElementById("startTest").addEventListener("click", function () {
