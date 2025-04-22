@@ -640,70 +640,157 @@ def doctorHomePage(request):
     
     return render(request, 'doctorHomePage.html', {'notifications': notifications})
 
-def average_statistics(request):
-    tests = Test.objects.values_list('patient_age', flat=True)
+# AVG STATS
+AGE_BINS = [30, 39, 49, 59, 69, 79, 89, 99, float('inf')]
+AGE_LABELS = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100+"]
 
-    if not tests:
-        age_data = { "30-39": 0, "40-49": 0, "50-59": 0, "60-69": 0,
-                     "70-79": 0, "80-89": 0, "90-99": 0, "100+":0 }
-        accuracy_data = {key: 0 for key in age_data.keys()}
-        stimulus_accuracy_avg = {} ##
-    else:
-        df = pd.DataFrame({'patient_age': tests})
-        bins = [30, 39, 49, 59, 69, 79, 89, 99, float('inf')]
-        labels = ["30-39", "40-49", "50-59", "60-69", 
-                  "70-79", "80-89", "90-99", "100+"]
-        df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
+def get_age_distribution(tests):
+    df = pd.DataFrame({'patient_age': [test.patient_age for test in tests]})
+    df['age_group'] = pd.cut(df['patient_age'], bins=AGE_BINS, labels=AGE_LABELS, right=True)
+    return df['age_group'].value_counts().sort_index().to_dict()
 
-        age_data = df['age_group'].value_counts().sort_index().to_dict()
+def get_overall_accuracy_by_age(tests):
+    from collections import defaultdict
 
-        accuracy_data = {key: [] for key in labels}  
+    grouped_accuracies = defaultdict(list)
 
-        stimulus_accuracy = {stimulus.id: {label: [] for label in labels} 
-                            for stimulus in Given_Stimuli.objects.all()} ##
+    for test in tests:
+        age = test.patient_age
+        age_group = pd.cut([age], bins=AGE_BINS, labels=AGE_LABELS, right=True)[0]
+        if age_group:
+            accuracy = _calculate_accuracies(test)
+            grouped_accuracies[age_group].append(accuracy)
+    averaged = {}
+    for group in AGE_LABELS:
+        values = grouped_accuracies.get(group, [])
+        averaged[group] = round(sum(values) / len(values), 2) if values else 0
 
-        responses = Stimuli_Response.objects.select_related('given')
+    return averaged
 
-        for response in responses:
-            correct = response.given.correct_order.strip()
-            user_response = response.response.strip()
-            stimulus_id = response.given.id
+import numpy as np
 
-            match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
-            accuracy_percentage = (match_count / len(correct)) * 100
+def get_overall_accuracy_boxplot_data(tests):
+    age_group_accuracies = {label: [] for label in AGE_LABELS}
 
-            age = response.test.patient_age
-            age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
+    for test in tests:
+        age = test.patient_age
+        if age is None:
+            continue
+        age_group = pd.cut([age], bins=AGE_BINS, labels=AGE_LABELS, right=True)[0]
+        accuracy = _calculate_accuracies(test)
+        age_group_accuracies[age_group].append(accuracy)
 
-            if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
-                stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)##
+    # Format for Chart.js boxplot plugin
+    boxplot_data = {}
 
-            if age_group in accuracy_data:
-                accuracy_data[age_group].append(accuracy_percentage)
-
-        stimulus_accuracy_avg = {
-            stim_id: {
-                age_group: (
-                    sum(values) / len(values) if values else 0
-                )
-                for age_group, values in age_dict.items()
+    for group, scores in age_group_accuracies.items():
+        if scores:
+            sorted_scores = sorted(scores)
+            boxplot_data[group] = {
+                "min": float(np.min(sorted_scores)),
+                "q1": float(np.percentile(sorted_scores, 25)),
+                "median": float(np.percentile(sorted_scores, 50)),
+                "q3": float(np.percentile(sorted_scores, 75)),
+                "max": float(np.max(sorted_scores)),
             }
-            for stim_id, age_dict in stimulus_accuracy.items()
-        }##
+        else:
+            boxplot_data[group] = {
+                "min": 0, "q1": 0, "median": 0, "q3": 0, "max": 0
+            }
 
-        for key in accuracy_data.keys():
-            if accuracy_data[key]:
-                accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
-            else:
-                accuracy_data[key] = 0
+    return boxplot_data
 
-    return render(request, 'average_statistics.html', {
+from collections import defaultdict
+from statistics import mean
+
+def get_stimulus_latency_data():
+    latency_data = defaultdict(lambda: defaultdict(list))
+
+    all_responses = Stimuli_Response.objects.select_related('test', 'given')
+
+    for response in all_responses:
+        if not response.given:
+            continue
+
+        age_group = response.get_age_group()
+        stim_id = response.given.id
+        avg_latency = response.get_avg_latency()
+        latency_data[stim_id][age_group].append(avg_latency)
+
+    averaged_data = {}
+    for stimulus, age_data in latency_data.items():
+        averaged_data[stimulus] = {
+            age_group: round(mean(latencies), 2)
+            for age_group, latencies in age_data.items()
+            if latencies
+        }
+
+    return averaged_data
+
+
+def get_stimulus_accuracy_data():
+    stimulus_accuracy = {
+        stimulus.id: {label: [] for label in AGE_LABELS}
+        for stimulus in Given_Stimuli.objects.all()
+    }
+
+    responses = Stimuli_Response.objects.select_related('given', 'test')
+
+    for response in responses:
+        correct = response.given.correct_order.strip()
+        user_response = response.response.strip()
+        stimulus_id = response.given.id
+
+        match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
+        accuracy_percentage = (match_count / len(correct)) * 100
+
+        age = response.test.patient_age
+        age_group = pd.cut([age], bins=AGE_BINS, labels=AGE_LABELS, right=True)[0]
+
+        if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
+            stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)
+
+    stimulus_accuracy_avg = {
+        stim_id: {
+            age_group: (
+                sum(values) / len(values) if values else 0
+            )
+            for age_group, values in age_dict.items()
+        }
+        for stim_id, age_dict in stimulus_accuracy.items()
+    }
+
+    return stimulus_accuracy_avg
+
+
+
+def average_statistics(request):
+    tests = list(Test.objects.all())
+    
+    if not tests:
+        age_data = {label: 0 for label in AGE_LABELS}
+        accuracy_data = {label: 0 for label in AGE_LABELS}
+        accuracy_boxplot_data = {}
+        stimulus_accuracy_avg = {} ##
+        stimulus_latency = {}
+    else:
+        age_data = get_age_distribution(tests)
+        accuracy_data = get_overall_accuracy_by_age(tests) 
+        accuracy_boxplot_data = get_overall_accuracy_boxplot_data(tests)
+        stimulus_accuracy_avg = get_stimulus_accuracy_data()
+        stimulus_latency = get_stimulus_latency_data()
+
+    context = {
+        'accuracy_boxplot': json.dumps(accuracy_boxplot_data),
         'labels': json.dumps(list(age_data.keys())),
         'values': json.dumps(list(age_data.values())),
         'accuracy_labels': json.dumps(list(accuracy_data.keys())),
         'accuracy_values': json.dumps(list(accuracy_data.values())),
-        'stimulus_accuracy': json.dumps(stimulus_accuracy_avg)
-    })
+        'stimulus_accuracy': json.dumps(stimulus_accuracy_avg),
+        'stimulus_latency': json.dumps(stimulus_latency),
+    }
+
+    return render(request, 'average_statistics.html', context)
 
 def create_notification_test_completed(request):
     if request.method == 'POST':
