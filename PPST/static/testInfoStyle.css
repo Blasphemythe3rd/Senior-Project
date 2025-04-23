@@ -46,6 +46,11 @@ h2{
   color: var(--secondary-color);
 }
 
+.test-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .test-table {
     width: 100%;  /* take up width of screen */
     border-collapse: collapse; 
@@ -112,4 +117,17 @@ tbody td {
 
 tfoot th {
   text-align: right;
+}
+
+@media (max-width: 600px) {
+  .test-table td,
+  .test-table th {
+    padding: 0px;
+    font-size: 0.6rem;
+  }
+
+  .download-button {
+    font-size: 0.75rem;
+    padding: 0.4rem;
+  }
 }

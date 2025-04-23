@@ -18,15 +18,23 @@
     width: 100%
 }
 
+html,body {
+    overflow-x: hidden;
+}
+
+*{
+    box-sizing: border-box;
+}
+
 .navbar_container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 120px;
     width: 100%;
-    max-width: 1300px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 50px;
+    padding: 0 1rem;
 }
 
 #navbar_logo {
