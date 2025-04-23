@@ -29,39 +29,32 @@
     <!-- Admin Page -->
     <div id="adminPage" style="display: none;">
         <!-- Add Doctor Tab -->
-        <div id="addDoctorTab" style="display: none;">
-            <h2>Add New Doctor</h2>
-            <form id="addDoctorForm">
-                {% csrf_token %}
-                <label for="first_name">First Name:</label>
-                <input type="text" id="first_name" name="first_name" required><br><br>
-    
-                <label for="last_name">Last Name:</label>
-                <input type="text" id="last_name" name="last_name" required><br><br>
-    
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required><br><br>
-    
-                <button type="submit">Add Doctor</button>
-            </form>
-        </div>
-    
-        <!-- Doctors List Tab -->
-        <div id="doctorListTab" style="display: none;">
-            <h2>Doctors List</h2>
-            <ul id="doctorList">
-                {% for doctor in doctors %}
-                    <li onclick="fetchDoctorTests('{{ doctor.id }}')">
-                        {{ doctor.first_name }} {{ doctor.last_name }} - {{ doctor.email }}
-                    </li>
-                {% endfor %}
-            </ul>
-        
-            <!-- Test List -->
-            <div id="testList">
-                <p><strong>Select a doctor to see their associated tests.</strong></p>
-            </div>
-        </div>
+<div id="addDoctorTab" style="display: none;">
+    <h2>Add New Doctor</h2>
+    <form id="addDoctorForm">
+        {% csrf_token %}
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" required><br><br>
+
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <button type="submit">Add Doctor</button>
+    </form>
+
+    <!-- List of Doctors -->
+    <h3>Current Doctors</h3>
+    <ul id="currentDoctorsList">
+        {% for doctor in doctors %}
+            <li>
+                {{ doctor.first_name }} {{ doctor.last_name }} - {{ doctor.email }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
     
         <!-- Average Statistics Tab -->
         <div id="averageStatisticsTab" style="display: none;">
@@ -80,6 +73,96 @@
             <h2 style="margin-top: 40px;">Stimulus Accuracy Breakdown</h2>
             <div id="charts-container"></div>
         </div>
+
+
+
+        <div id="adminTestInfoTab" style="display: none;">
+            <html lang = "en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Patient Information</title>
+        <script src="https://unpkg.com/htmx.org"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'testInfoStyle.css' %}">
+    </head>
+<h1>
+            <h1>All Tests</h1>
+        
+            <div>
+                <h2>All Tests in the Database:</h2>
+        
+                <table class="test-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Time Started</th>
+                            <th>Time Ended</th>
+                            <th>Status</th>
+                            <th>Patient Age</th>
+                            <th>Correct Percentage</th>
+                            <th>Assigned Doctor</th>
+                            <th>Full Report</th>
+                        </tr>
+                    </thead>
+                    <tbody id="test-data">
+                        <!-- Test data will be dynamically loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <script>
+            function loadTests() {
+    fetch('/PPST/admin/fetch_tests/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch test data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const testDataContainer = document.getElementById('test-data');
+            testDataContainer.innerHTML = ''; // Clear any existing content
+
+            if (data.tests && data.tests.length > 0) {
+                data.tests.forEach(test => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${test.test_id}</td>
+                        <td>${test.time_started || 'N/A'}</td>
+                        <td>${test.time_ended || 'N/A'}</td>
+                        <td>${test.status}</td>
+                        <td>${test.patient_age}</td>
+                        <td>${test.correct_percentage || 'Unavailable'}</td>
+                        <td>${test.doctor}</td>
+                        <td>
+                            ${test.status === 'Complete' ? 
+                                `<a href="/PPST/download_test/${test.test_id}" class="download-button">Download</a>` : 
+                                'Results Unavailable'}
+                        </td>
+                    `;
+                    testDataContainer.appendChild(row);
+                });
+            } else {
+                testDataContainer.innerHTML = '<tr><td colspan="8">No tests available in the database.</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching test data:', error);
+            const testDataContainer = document.getElementById('test-data');
+            testDataContainer.innerHTML = '<tr><td colspan="8">Failed to load test data.</td></tr>';
+        });
+    }
+
+    // Load tests when the tab is shown
+    document.querySelector('[onclick="showTab(\'adminTestInfo\')"]').addEventListener('click', loadTests);
+        
+            // Load tests when the tab is shown
+            document.querySelector('[onclick="showTab(\'adminTestInfo\')"]').addEventListener('click', loadTests);
+        </script>
     </div>
 {% endblock %}
 

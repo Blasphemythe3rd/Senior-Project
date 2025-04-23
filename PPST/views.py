@@ -294,6 +294,26 @@ def admin_login(request):
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+
+def admin_dashboard(request):
+    percentages = []
+    notEmpty = False
+
+    tests = Test.objects.all()
+
+    for test in tests: # calculate correct response %
+        percentages.append(_calculate_accuracies(test))
+
+    zippedTests = zip(tests, percentages) # can use both in django for each:  {% for test, percentage in tests %}
+
+    if(tests): # allows webpage to display no tests screen rather than empty table
+        notEmpty = True
+
+    return render(request, "testInfo.html", {
+        'notEmpty' : notEmpty,
+        'tests' : zippedTests
+    })
+
 def admin_page(request):
      try:
          # Fetch all tests
@@ -400,27 +420,49 @@ def list_doctors(request):
 
 
 @require_GET
-def fetch_test_details(request, test_id):
+def fetch_all_tests(request):
     try:
-        test = Test.objects.get(test_id=test_id)
-        stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
-            "enum_type", 
-            "response", 
-            "response_per_click", 
-            "given__given_stimuli", 
-            "given__correct_order"
-        )
+        # Fetch all tests and their associated doctors
+        tests = Test.objects.select_related('doctor').all()
+        test_data = []
 
-        return JsonResponse({
-            "test_id": test.test_id,
-            "time_started": test.time_started,
-            "time_ended": test.time_ended,
-            "status": test.status,
-            "patient_age": test.patient_age,
-            "stimuli_responses": list(stimuli_responses)
-        })
-    except Test.DoesNotExist:
-        return JsonResponse({"error": "Test not found"}, status=404)
+        for test in tests:
+            # Dynamically calculate the correct percentage
+            correct_percentage = _calculate_accuracies(test)  # Replace with your actual calculation function
+
+            test_data.append({
+                "test_id": test.test_id,
+                "time_started": test.time_started.strftime('%d/%m/%y %H:%M') if test.time_started else None,
+                "time_ended": test.time_ended.strftime('%d/%m/%y %H:%M') if test.time_ended else None,
+                "status": "Not Started" if test.status == 0 else "In Progress" if test.status == 1 else "Complete",
+                "patient_age": test.patient_age,
+                "correct_percentage": correct_percentage if test.status == 2 else None,
+                "doctor": f"Dr. {test.doctor.first_name} {test.doctor.last_name}"
+            })
+
+        return JsonResponse({"tests": test_data})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@require_GET
+def fetch_test_details(request, test_id):
+    percentages = []
+    notEmpty = False
+
+    tests = Test.objects.all()
+
+    for test in tests: # calculate correct response %
+        percentages.append(_calculate_accuracies(test))
+
+    zippedTests = zip(tests, percentages) # can use both in django for each:  {% for test, percentage in tests %}
+
+    if(tests): # allows webpage to display no tests screen rather than empty table
+        notEmpty = True
+
+    return render(request, "testInfo.html", {
+        'notEmpty' : notEmpty,
+        'tests' : zippedTests
+    })
 
 @require_GET
 def doctor_tests(request, doctor_id):

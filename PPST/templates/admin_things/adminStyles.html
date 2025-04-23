@@ -8,7 +8,7 @@
         background-color: #f7f4de; 
     }
 
-    .navbar {
+    .navbar_container {
         background-color: #965531; 
         padding: 10px 20px;
         display: flex;
@@ -16,38 +16,49 @@
         justify-content: space-between;
     }
 
-    .navbar_container {
-        display: flex;
-        align-items: center;
-    }
 
-    .navbar_title {
-        font-size: 24px;
-        color: white;
-        margin-left: 10px;
-    }
+/* Style for the logo */
+#navbar_logo {
+    width: 50px;
+    height: auto;
+    border-radius: 50%;
+    object-fit: cover;
+    max-height: 50px;
+}
 
-    .navbar_menu {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-    }
+/* Style for the title */
+.navbar_title {
+    flex-grow: 1; /* Allow the title to take up remaining space */
+    text-align: center; /* Center the title */
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #f7f4de;
+}
 
-    .navbar_item {
-        margin-right: 20px;
-    }
+/* Style for the menu */
+.navbar_menu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
 
-    .navbar_links {
-        color: white;
-        text-decoration: none;
-        font-size: 18px;
-    }
+/* Style for the menu items */
+.navbar_item {
+    margin-left: 20px; /* Add spacing between links */
+}
 
-    .navbar_links:hover {
-        text-decoration: underline;
-    }
+/* Style for the links */
+.navbar_links {
+    text-decoration: none;
+    color: #f7f4de; /* Optional: Set link color */
+    font-size: 1rem;
+    font-weight: 500;
+}
 
+.navbar_links:hover {
+    text-decoration: underline; /* Optional: Add underline on hover */
+}
     #loginPage {
         display: flex;
         justify-content: center; 

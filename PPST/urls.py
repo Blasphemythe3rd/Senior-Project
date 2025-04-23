@@ -30,6 +30,12 @@ urlpatterns = [
     path('admin/average_statistics/', views.admin_average_statistics, name='admin_average_statistics'),    
     path('admin/doctor_tests/<int:doctor_id>/', views.doctor_tests, name='doctor_tests'),
     path('admin/test_details/<int:test_id>/', views.fetch_test_details, name='fetch_test_details'),
+    path('admin/adminTestInfo/', views.testInfo, name='adminTestInfo'),
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+
+    path('admin/fetch_tests/', views.fetch_all_tests, name='fetch_all_tests'),
+
+
     path('admin/login/', views.admin_login, name='admin_login'),
     path('doctorHomePage/', views.doctorHomePage, name="doctorHomePage"),
     path("average_statistics/", views.average_statistics, name="average_statistics"),
@@ -37,5 +43,6 @@ urlpatterns = [
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
     path('reset-password-token/', views.reset_password_token, name='reset_password_token'),
     path('reset-password/', views.reset_password, name='reset_password'),
+    
 
 ]

@@ -95,14 +95,14 @@ document.getElementById('addDoctorForm').addEventListener('submit', function(eve
 function showTab(tab) {
     // Hide all tabs
     document.getElementById('addDoctorTab').style.display = 'none';
-    document.getElementById('doctorListTab').style.display = 'none';
+    document.getElementById('adminTestInfoTab').style.display = 'none';
     document.getElementById('averageStatisticsTab').style.display = 'none';
 
     // Show the selected tab
     if (tab === 'add') {
         document.getElementById('addDoctorTab').style.display = 'block';
-    } else if (tab === 'list') {
-        document.getElementById('doctorListTab').style.display = 'block';
+    } else if (tab === 'adminTestInfo') {
+        document.getElementById('adminTestInfoTab').style.display = 'block';
     } else if (tab === 'average_statistics') {
         document.getElementById('averageStatisticsTab').style.display = 'block';
     }
