@@ -29,7 +29,7 @@
     <div>
         {% if notEmpty %}
             <h2>Your Assigned Tests:</h2>
-
+        <div class="table-wrapper">
             <table class="test-table">
                 <thead>
                     <tr>
@@ -72,6 +72,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
         {% else %}
             You have no tests assigned
         {% endif %}
