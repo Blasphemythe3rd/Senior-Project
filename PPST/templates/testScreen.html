@@ -12,7 +12,6 @@
 </head>
 
 <body>
-
     {% comment %}
     <script>   //for changing font, does not work
         fontSize = localStorage.getItem('fontSize');
@@ -73,6 +72,7 @@
     </div>
 
     <script>
+
         let clickButtonSound = new Audio("{% static 'clickButton.wav' %}")
         let nextButtonSound = new Audio("{% static 'nextButton.mp3' %}")
 
@@ -124,7 +124,15 @@
             currGivenStim = null;
 
             if (counterRandStim == 0) {
+                if (savedLang === "en"){
                 await showModal("Here is your first practice question. Click on the following numbers in order from lowest to highest.");
+                } else if (savedLang === "es"){
+                await showModal("Aquí está su primera pregunta de práctica. Haga clic en los siguientes números en orden de menor a mayor.");
+                } else if (savedLang === "fr"){  
+                await showModal("Voici votre première question d'entraînement. Cliquez sur les chiffres suivants dans l'ordre croissant.");
+                } else if (savedLang === "de"){
+                await showModal("Hier ist Ihre erste Übungsfrage. Klicken Sie auf die folgenden Zahlen in aufsteigender Reihenfolge.");
+                }
             }
 
             //Temp varible to fix inputStartTime
@@ -234,9 +242,25 @@
                 nextButtonSound.play();
                 if (counterRandStim < 1) {
                 // Show the modal and wait for the user to click "OK"
-                    await showModal("You also have a mix of numbers and letters. Click on the numbers from lowest to highest first, then click on the letters from earliest to last in the alphabet.");
+                    if (savedLang === "en"){
+                        await showModal("You also have a mix of numbers and letters. Click on the numbers from lowest to highest first, then click on the letters from earliest to last in the alphabet.");
+                    }else if (savedLang === "es"){
+                        await showModal("También tienes una mezcla de números y letras. Haga clic primero en los números de menor a mayor, luego haga clic en las letras de la primera a la última en el alfabeto.");
+                    } else if (savedLang === "fr"){
+                        await showModal("Vous avez également un mélange de chiffres et de lettres. Cliquez d'abord sur les chiffres du plus bas au plus haut, puis cliquez sur les lettres du premier au dernier dans l'alphabet.");
+                    } else if (savedLang === "de"){
+                        await showModal("Sie haben auch eine Mischung aus Zahlen und Buchstaben. Klicken Sie zuerst auf die Zahlen von der niedrigsten zur höchsten, und klicken Sie dann auf die Buchstaben vom ersten bis zum letzten im Alphabet.");
+                    }
                 } else if (counterRandStim == 1) {
-                    await showModal("You are now ready to start the test. Click OK to start");
+                    if (savedLang === "en"){
+                        await showModal("You are now ready to start the test. Click OK to start");
+                    } else if (savedLang === "es"){
+                        await showModal("Ahora está listo para comenzar la prueba. Haga clic en Aceptar para comenzar");
+                    } else if (savedLang === "fr"){
+                        await showModal("Vous êtes maintenant prêt à commencer le test. Cliquez sur OK pour commencer");
+                    } else if (savedLang === "de"){
+                        await showModal("Sie sind jetzt bereit, den Test zu starten. Klicken Sie auf OK, um zu starten");
+                    }
                 }
 
                 if (!debugMode) {

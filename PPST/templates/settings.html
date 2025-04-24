@@ -9,26 +9,75 @@
     <link rel="stylesheet" href="{% static 'settings.css' %}">
 </head>
 
+<div id="google_translate_element"></div>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+    }
+</script>
+
 <script>
   function handleTTSClick() {
     const img = document.getElementById("tts_image");
-    const textToSpeech = `
-      Select english, spanish, french or german. 
-      text size can be changed to small, medium, large or larger. 
-      proceed button below.`;
+    const selectedLanguage = "{{ language }}";
 
-    const utterance = new SpeechSynthesisUtterance(textToSpeech);
-    utterance.volume = 0.5;
+    let textToSpeech = "";
+    let langCode = "en-US"; // default fallback
 
-    img.classList.add("speaking");
+    if (selectedLanguage === "en") {
+      textToSpeech = `
+        Select English, Spanish, French or German. 
+        Text size can be changed to small, medium, large or larger. 
+        Proceed button below.`;
+      langCode = "en-US";
+    } else if (selectedLanguage === "es") {
+      textToSpeech = `
+        Seleccione inglés, español, francés o alemán. 
+        El tamaño del texto se puede cambiar a pequeño, mediano, grande o más grande. 
+        Botón de proceder a continuación.`;
+      langCode = "es-ES";
+    } else if (selectedLanguage === "fr") {
+      textToSpeech = `
+        Sélectionnez anglais, espagnol, français ou allemand. 
+        La taille du texte peut être changée en petit, moyen, grand ou plus grand. 
+        Bouton de procéder ci-dessous.`;
+      langCode = "fr-FR";
+    } else if (selectedLanguage === "de") {
+      textToSpeech = `
+        Wählen Sie Englisch, Spanisch, Französisch oder Deutsch. 
+        Die Textgröße kann auf klein, mittel, groß oder größer geändert werden. 
+        Fahren Sie mit der Schaltfläche unten fort.`;
+      langCode = "de-DE";
+    }
 
-    utterance.onend = () => {
-      img.classList.remove("speaking");
-    };
+    function speakWhenVoicesReady() {
+      const voices = speechSynthesis.getVoices();
+      const voice = voices.find(v => v.lang.startsWith(langCode.split('-')[0])) || voices[0];
 
-    window.speechSynthesis.speak(utterance);
+      const utterance = new SpeechSynthesisUtterance(textToSpeech);
+      utterance.lang = langCode;
+      utterance.voice = voice;
+      utterance.volume = 0.5;
+
+      img.classList.add("speaking");
+      utterance.onend = () => {
+        img.classList.remove("speaking");
+      };
+
+      speechSynthesis.speak(utterance);
+    }
+
+    // Chrome fix: wait for voices to be loaded
+    if (speechSynthesis.getVoices().length === 0) {
+      speechSynthesis.onvoiceschanged = speakWhenVoicesReady;
+    } else {
+      speakWhenVoicesReady();
+    }
   }
 </script>
+
+
 
 <body>
     <h1>Settings</h1>
@@ -57,18 +106,32 @@
         <button id="startTest" class="proceed-button">Proceed</button>
     </div>
 <script>
-    // saves language to local storage
-    const languageButtons = document.querySelectorAll('.language-button');
+  let defaultLang = "{{ language }}";
+  console.log("Default language:", defaultLang);
 
-    languageButtons.forEach(button => {
-      button.addEventListener('click', function() {
-          languageButtons.forEach(btn => btn.classList.remove('active'));
-          this.classList.add('active');
-          const selectedLanguage = this.getAttribute('data-lang');
-          document.cookie = "googtrans=/en/" + selectedLanguage + "; path=/;";
-          localStorage.setItem('selectedLanguage', selectedLanguage);
-      });
+  const languageButtons = document.querySelectorAll('.language-button');
+
+  // Set default active language on page load
+  languageButtons.forEach(button => {
+    const lang = button.getAttribute('data-lang');
+    if (lang === defaultLang) {
+      button.classList.add('active');
+      document.cookie = "googtrans=/en/" + defaultLang + "; path=/;";
+      localStorage.setItem('selectedLanguage', defaultLang);
+    }
+  });
+
+  // Handle language changes on button click
+  languageButtons.forEach(button => {
+    button.addEventListener('click', function () {
+      languageButtons.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+
+      const selectedLanguage = this.getAttribute('data-lang');
+      document.cookie = "googtrans=/en/" + selectedLanguage + "; path=/;";
+      localStorage.setItem('selectedLanguage', selectedLanguage);
     });
+  });
   
       function changeFontSize(size) {
         var content = document.getElementById('content');

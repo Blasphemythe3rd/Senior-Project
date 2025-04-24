@@ -128,6 +128,7 @@ def createTest(request):
             data = json.loads(request.body) #parse the json data from the request
             recipient_email = data.get("email")
             patient_age = data.get("age")
+            language = data.get("language")
 
             if not recipient_email: #check for email
                 return JsonResponse({"error": "No email provided"}, status=400)
@@ -138,8 +139,9 @@ def createTest(request):
 
             new_test = Test.objects.create(patient_age=patient_age, doctor=doctor) #create a new test object
             
+            
             subject = "Test Link for PPST"
-            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/settings/{new_test.test_id}" #message to be sent to the user with link(link will need to be changed)
+            message = f"A new test has been created for you with ID: http://127.0.0.1:8000/PPST/settings/{new_test.test_id}/{language}" #message to be sent to the user with link(link will need to be changed)
             
             send_mail(subject, message, settings.EMAIL_HOST_USER, [recipient_email])
 
@@ -950,9 +952,10 @@ def testStart(request, testId):
         'testId' : testId
     })
     
-def setting(request, testId):
+def setting(request, testId, language):
     return render(request, "settings.html", {
-        'testId' : testId
+        'testId' : testId,
+        'language' : language
     })
 
 def forgot_password(request):
