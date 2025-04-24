@@ -96,7 +96,6 @@
     </div>
   
     <div id="controls">
-      <button onclick="changeFontSize('small')">Small</button>
       <button onclick="changeFontSize('medium')">Medium</button>
       <button onclick="changeFontSize('large')">Large</button>
       <button onclick="changeFontSize('larger')">Larger</button>
@@ -132,30 +131,34 @@
       localStorage.setItem('selectedLanguage', selectedLanguage);
     });
   });
-  
-      function changeFontSize(size) {
-        var content = document.getElementById('content');
-        switch (size) {
-          case 'small':
-            content.style.fontSize = '18px';
-            fontSize = '18px';
-            break;
-          case 'medium':
-            content.style.fontSize = '24px';
-            fontSize = '24px';
-            break;
-          case 'large':
-            content.style.fontSize = '28px';
-            fontSize = '28px';
-            break;
-          case 'larger':
-            content.style.fontSize = '30px';
-            fontSize = '30px';
-            break;
-        }
 
-        localStorage.setItem('fontSize', fontSize); // saves to local browser storage
+    function changeFontSize(size) {
+      var content = document.getElementById('content');
+      let fontSize;
+      switch (size) {
+        case 'medium':
+          fontSizeStim = '250px';
+          fontSizeButton = '50px';
+          fontSize = '20px'
+          break;
+        case 'large':
+          fontSizeStim = '475px';
+          fontSizeButton = '65px';
+          fontSize = '32px'
+          break;
+        case 'larger':
+          fontSizeStim = '515px';
+          fontSizeButton = '80px';
+          fontSize = '50px'
+          break;
       }
+
+
+      content.style.fontSize = fontSize;
+     
+      localStorage.setItem('fontSizeStim', fontSizeStim);
+      localStorage.setItem('fontSizeButton', fontSizeButton)
+    }
   
       let url = "http://127.0.0.1:8000/PPST/testStart/" + "{{ testId }}";
       document.getElementById("startTest").addEventListener("click", function () {
