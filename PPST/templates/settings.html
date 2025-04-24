@@ -103,7 +103,7 @@
     </div>
   
     <div>
-        <button id="startTest">Proceed</button>
+        <button id="startTest" class="proceed-button">Proceed</button>
     </div>
 <script>
   let defaultLang = "{{ language }}";
@@ -162,6 +162,12 @@
         window.speechSynthesis.cancel();
         window.location.replace(url); // does not allow going back in browser history
       });
-      </script>
+
+      const sizeButtons = document.querySelectorAll('#controls button');
+      sizeButtons.forEach(btn => btn.addEventListener('click', function() {
+      sizeButtons.forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+  }));
+  </script>
   </body>
   </html>
