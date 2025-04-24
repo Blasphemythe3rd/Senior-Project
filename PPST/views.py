@@ -655,41 +655,6 @@ def get_stimulus_latency_data():
 
     return averaged_data
 
-
-def get_stimulus_accuracy_data():
-    stimulus_accuracy = {
-        stimulus.id: {label: [] for label in AGE_LABELS}
-        for stimulus in Given_Stimuli.objects.all()
-    }
-
-    responses = Stimuli_Response.objects.select_related('given', 'test')
-
-    for response in responses:
-        correct = response.given.correct_order.strip()
-        user_response = response.response.strip()
-        stimulus_id = response.given.id
-
-        match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
-        accuracy_percentage = (match_count / len(correct)) * 100
-
-        age = response.test.patient_age
-        age_group = pd.cut([age], bins=AGE_BINS, labels=AGE_LABELS, right=True)[0]
-
-        if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
-            stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)
-
-    stimulus_accuracy_avg = {
-        stim_id: {
-            age_group: (
-                sum(values) / len(values) if values else 0
-            )
-            for age_group, values in age_dict.items()
-        }
-        for stim_id, age_dict in stimulus_accuracy.items()
-    }
-
-    return stimulus_accuracy_avg
-
 def get_age_group(age):
     lower_bound = 30
     for i, upper_bound in enumerate(AGE_BINS):
