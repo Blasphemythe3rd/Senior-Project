@@ -18,6 +18,19 @@ body{
     
 }
 
+#search { /* https://www.w3schools.com/howto/howto_js_filter_table.asp */ 
+  background-image: url("/static/images/search-icon.png"); /* Add a search icon to input */
+  background-size: 20px 20px;
+  background-position: 10px 12px; /* Position the search icon */
+  background-repeat: no-repeat; /* Do not repeat the icon image */
+  width: 30%; /* Full-width */
+  font-size: 16px; /* Increase font-size */
+  padding: 12px 20px 12px 40px; /* Add some padding */
+  border: 1px solid #ddd; /* Add a grey border */
+  margin-bottom: 12px; /* Add some space below the input */
+  float: right;
+}
+
 h1{
   text-align: center;
   color: var(--secondary-color);
@@ -44,6 +57,11 @@ h2{
   font-style: italic;
 
   color: var(--secondary-color);
+}
+
+.test-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
 .test-table {
@@ -112,4 +130,17 @@ tbody td {
 
 tfoot th {
   text-align: right;
+}
+
+@media (max-width: 600px) {
+  .test-table td,
+  .test-table th {
+    padding: 0px;
+    font-size: 0.6rem;
+  }
+
+  .download-button {
+    font-size: 0.75rem;
+    padding: 0.4rem;
+  }
 }
