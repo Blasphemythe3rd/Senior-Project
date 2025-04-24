@@ -1,31 +1,93 @@
-.language-button {
-    padding: 10px 20px;
-    margin: 5px;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
-    cursor: pointer;
+:root {
+  --primary-color: #965531;
+  --secondary-color: #3b5c38;
+  --accent-color: #a0da9b;
+  --background-color: #f7f4de;
+}
+
+body {
+  background-color: var(--background-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--secondary-color);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+}
+
+button {
+  font-family: inherit;
+  padding: 10px 20px;
+  margin: 5px;
+  border: 1px solid var(--accent-color);
+  background-color: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: var(--secondary-color);
+}
+
+button.selected,
+.language-button.active {
+  background-color: var(--secondary-color);
+  color: white;
+  border-color: var(--secondary-color);
+}
+
+.proceed-button {
+  margin-top: 25px;
+  padding: 12px 24px;
+  justify-content: center;
+  background-color: var(--secondary-color);
+  color: white;
+  border: 2px solid var(--secondary-color);
+  border-radius: 5px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.proceed-button:hover {
+  background-color: #2f4e2d; /* Slightly darker shade for hover */
+  transform: scale(1.02);
+}
+
+.proceed-button:active {
+  transform: scale(0.98);
+}
+
+main__img--container,
+#language-button,
+#controls,
+#content,
+#startTest {
+  margin: 20px 0;
+}
+
+#language-button,
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+#startTest {
+  margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+  .language-button, #controls button, #startTest {
+    width: 100%;
+    box-sizing: border-box;
   }
-  
-  .language-button.selected {
-    background-color: #007BFF; /* Highlight color */
-    color: #fff;
-    border-color: #007BFF;
-  }
-  
-  .language-button.active {
-    background-color: #007BFF; /* Change to your preferred highlight color */
-    color: white;
-  }
-  
-  #tts_image{
-    width: 80px;  
-    height: 80px;   
-    border-radius: 50%;
-    object-fit: cover; 
-    cursor: pointer;
-  }
-  
-  #tts_image.speaking {
-  background-color: #34d399; 
-  box-shadow: 0 0 10px #34d399;
-  }
+}

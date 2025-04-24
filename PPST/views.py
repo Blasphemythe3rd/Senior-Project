@@ -328,6 +328,26 @@ def admin_login(request):
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+
+def admin_dashboard(request):
+    percentages = []
+    notEmpty = False
+
+    tests = Test.objects.all()
+
+    for test in tests: # calculate correct response %
+        percentages.append(_calculate_accuracies(test))
+
+    zippedTests = zip(tests, percentages) # can use both in django for each:  {% for test, percentage in tests %}
+
+    if(tests): # allows webpage to display no tests screen rather than empty table
+        notEmpty = True
+
+    return render(request, "testInfo.html", {
+        'notEmpty' : notEmpty,
+        'tests' : zippedTests
+    })
+
 def admin_page(request):
      try:
          # Fetch all tests
@@ -432,28 +452,51 @@ def list_doctors(request):
     doctors = Doctor.objects.all().values("id", "first_name", "last_name", "email", "username")
     return JsonResponse(list(doctors), safe=False)
 
+
+@require_GET
+def fetch_all_tests(request):
+    try:
+        # Fetch all tests and their associated doctors
+        tests = Test.objects.select_related('doctor').all()
+        test_data = []
+
+        for test in tests:
+            # Dynamically calculate the correct percentage
+            correct_percentage = _calculate_accuracies(test)  # Replace with your actual calculation function
+
+            test_data.append({
+                "test_id": test.test_id,
+                "time_started": test.time_started.strftime('%d/%m/%y %H:%M') if test.time_started else None,
+                "time_ended": test.time_ended.strftime('%d/%m/%y %H:%M') if test.time_ended else None,
+                "status": "Not Started" if test.status == 0 else "In Progress" if test.status == 1 else "Complete",
+                "patient_age": test.patient_age,
+                "correct_percentage": correct_percentage if test.status == 2 else None,
+                "doctor": f"Dr. {test.doctor.first_name} {test.doctor.last_name}"
+            })
+
+        return JsonResponse({"tests": test_data})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 @require_GET
 def fetch_test_details(request, test_id):
-    try:
-        test = Test.objects.get(test_id=test_id)
-        stimuli_responses = Stimuli_Response.objects.filter(test=test).select_related('given').values(
-            "enum_type", 
-            "response", 
-            "response_per_click", 
-            "given__given_stimuli", 
-            "given__correct_order"
-        )
+    percentages = []
+    notEmpty = False
 
-        return JsonResponse({
-            "test_id": test.test_id,
-            "time_started": test.time_started,
-            "time_ended": test.time_ended,
-            "status": test.status,
-            "patient_age": test.patient_age,
-            "stimuli_responses": list(stimuli_responses)
-        })
-    except Test.DoesNotExist:
-        return JsonResponse({"error": "Test not found"}, status=404)
+    tests = Test.objects.all()
+
+    for test in tests: # calculate correct response %
+        percentages.append(_calculate_accuracies(test))
+
+    zippedTests = zip(tests, percentages) # can use both in django for each:  {% for test, percentage in tests %}
+
+    if(tests): # allows webpage to display no tests screen rather than empty table
+        notEmpty = True
+
+    return render(request, "testInfo.html", {
+        'notEmpty' : notEmpty,
+        'tests' : zippedTests
+    })
 
 @require_GET
 def doctor_tests(request, doctor_id):
@@ -545,7 +588,78 @@ def add_doctor(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+@require_GET
+def admin_average_statistics(request):
+    try:
+        # Call the shared logic for average statistics
+        tests = Test.objects.values_list('patient_age', flat=True)
 
+        if not tests:
+            age_data = { "30-39": 0, "40-49": 0, "50-59": 0, "60-69": 0,
+                         "70-79": 0, "80-89": 0, "90-99": 0, "100+": 0 }
+            accuracy_data = {key: 0 for key in age_data.keys()}
+            stimulus_accuracy_avg = {}
+        else:
+            df = pd.DataFrame({'patient_age': tests})
+            bins = [30, 39, 49, 59, 69, 79, 89, 99, float('inf')]
+            labels = ["30-39", "40-49", "50-59", "60-69", 
+                      "70-79", "80-89", "90-99", "100+"]
+            df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
+
+            age_data = df['age_group'].value_counts().sort_index().to_dict()
+
+            accuracy_data = {key: [] for key in labels}  
+
+            stimulus_accuracy = {stimulus.id: {label: [] for label in labels} 
+                                for stimulus in Given_Stimuli.objects.all()}
+
+            responses = Stimuli_Response.objects.select_related('given')
+
+            for response in responses:
+                correct = response.given.correct_order.strip()
+                user_response = response.response.strip()
+                stimulus_id = response.given.id
+
+                match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
+                accuracy_percentage = (match_count / len(correct)) * 100
+
+                age = response.test.patient_age
+                age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
+
+                if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
+                    stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)
+
+                if age_group in accuracy_data:
+                    accuracy_data[age_group].append(accuracy_percentage)
+
+            stimulus_accuracy_avg = {
+                stim_id: {
+                    age_group: (
+                        sum(values) / len(values) if values else 0
+                    )
+                    for age_group, values in age_dict.items()
+                }
+                for stim_id, age_dict in stimulus_accuracy.items()
+            }
+
+            for key in accuracy_data.keys():
+                if accuracy_data[key]:
+                    accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
+                else:
+                    accuracy_data[key] = 0
+
+        # Return the data as JSON
+        return JsonResponse({
+            'labels': list(age_data.keys()),
+            'values': list(age_data.values()),
+            'accuracy_labels': list(accuracy_data.keys()),
+            'accuracy_values': list(accuracy_data.values()),
+            'stimulus_accuracy': stimulus_accuracy_avg
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+    
 @require_GET
 def overall_average_statistics(request):
      try:
@@ -890,5 +1004,3 @@ def reset_password(request):
         else:
             messages.error(request, 'Session expired. Please try again.')
     return render(request, 'reset_password.html')
-
-
