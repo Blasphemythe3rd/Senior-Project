@@ -224,14 +224,47 @@ def download_test(request, test_id):
     response_data = []
     stimulus_num = 1
     latencies = []
-    for response in responses:
-        response_list = [stimulus_num, response.given.correct_order, response.response, str(response.response_per_click), response.enum_type]
+    stimuliCharList = []
+    for response in responses: # build 2d list of data for all responses
+        response_list = []
+        charResponseList = list(response.response)
+
+        response_list.append(stimulus_num)
+        response_list.append(response.given.correct_order)
+        response_list.append(response.response)
+
+        for char in charResponseList: # one char per cell
+            response_list.append(char)
+        if response.enum_type in ('4digit_practice', '4mixed_practice', '4mixed', '4digit'): # pad row with blank cell
+            response_list.append("")
+        for latency in response.response_per_click:
+            response_list.append(latency)
+        if response.enum_type in ('4digit_practice', '4mixed_practice', '4mixed', '4digit'):
+            response_list.append("")
+        response_list.append(response.enum_type)
         response_data.append(response_list)
+
         latencies.append(response.response_per_click)
+        stimuliCharList.append(list(response.given.correct_order))
+
         stimulus_num += 1
 
-    for row in response_data:
-        ws.append(row)
+    # rowIndex = 0
+    # colIndex = 0
+    # for row in cell_range:
+    #     colIndex = 0
+    #     for cell in row:
+    #         cell.value = response_data[rowIndex][colIndex]
+    #         colIndex += 1
+    #     rowIndex += 1
+
+    cell_range = ws["A5":"N18"]
+    for row_idx, row in enumerate(cell_range): # use enumerate instead of messing with indices manually
+        for col_idx, cell in enumerate(row):
+            cell.value = response_data[row_idx][col_idx]
+
+    for stimuli in stimuliCharList:
+        ws.append(stimuli)
 
     ws2 = wb["Data Insights"]
     
@@ -259,12 +292,13 @@ def download_test(request, test_id):
     return response
 
 def _calculate_accuracies(test):
-    QUESTIONS_PER_TEST = 14
+    QUESTIONS_PER_TEST = 12 # excludes practice questions
 
     responses = Stimuli_Response.objects.filter(test = test)
     correct = 0
     for response in responses:
-        if(response.response == response.given.correct_order):
+        if(response.response == response.given.correct_order and 
+           (response.given.enum_type != "4digit_practice" and response.given.enum_type != "4mixed_practice")):
             correct+=1
 
     return round(correct/QUESTIONS_PER_TEST * 100, 2)
