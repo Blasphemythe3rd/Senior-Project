@@ -805,40 +805,54 @@ def get_stimulus_latency_data():
 
     return averaged_data
 
+def get_age_group(age):
+    lower_bound = 30
+    for i, upper_bound in enumerate(AGE_BINS):
+        if lower_bound <= age <= upper_bound:
+            return AGE_LABELS[i]
+        lower_bound = upper_bound + 1
 
-def get_stimulus_accuracy_data():
-    stimulus_accuracy = {
-        stimulus.id: {label: [] for label in AGE_LABELS}
-        for stimulus in Given_Stimuli.objects.all()
-    }
 
-    responses = Stimuli_Response.objects.select_related('given', 'test')
+def calculate_accuracies_by_stimulus_and_age_group():
+    stim_data = {}
+    responses = Stimuli_Response.objects.all()  # Get all responses across all tests
 
     for response in responses:
-        correct = response.given.correct_order.strip()
-        user_response = response.response.strip()
-        stimulus_id = response.given.id
+        stim_id = response.given.id
+        user_response = response.response
+        correct_order = response.given.correct_order
+        correct = sum(1 for u, c in zip(user_response, correct_order) if u == c)
+        accuracy = (correct / len(correct_order)) * 100 if correct_order else 0
+        user_age = response.test.patient_age
+        age_group = pd.cut([user_age], bins=AGE_BINS, labels=AGE_LABELS, right=True, include_lowest=True)[0]
 
-        match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
-        accuracy_percentage = (match_count / len(correct)) * 100
+        if stim_id not in stim_data:
+            stim_data[stim_id] = {age_group: [] for age_group in AGE_LABELS}
 
-        age = response.test.patient_age
-        age_group = pd.cut([age], bins=AGE_BINS, labels=AGE_LABELS, right=True)[0]
+        stim_data[stim_id][age_group].append(accuracy)
+    
+    return stim_data
 
-        if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
-            stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)
+def get_boxplot_data_by_stimulus():
+    stim_data = calculate_accuracies_by_stimulus_and_age_group()
+    boxplot_data = {}
 
-    stimulus_accuracy_avg = {
-        stim_id: {
-            age_group: (
-                sum(values) / len(values) if values else 0
-            )
-            for age_group, values in age_dict.items()
-        }
-        for stim_id, age_dict in stimulus_accuracy.items()
-    }
-
-    return stimulus_accuracy_avg
+    for stim_id, age_groups in stim_data.items():
+        boxplot_data[stim_id] = {}
+        for age_group in AGE_LABELS:
+            accuracies = age_groups.get(age_group, [])
+            accuracies = np.array(accuracies)
+            if accuracies.size == 0:
+                continue
+            boxplot_data[stim_id][age_group] = {
+                'min': float(np.min(accuracies)),
+                'q1': float(np.percentile(accuracies, 25)),
+                'median': float(np.median(accuracies)),
+                'q3': float(np.percentile(accuracies, 75)),
+                'max': float(np.max(accuracies))
+            }
+    
+    return boxplot_data
 
 
 
@@ -847,23 +861,19 @@ def average_statistics(request):
     
     if not tests:
         age_data = {label: 0 for label in AGE_LABELS}
-        accuracy_data = {label: 0 for label in AGE_LABELS}
         accuracy_boxplot_data = {}
         stimulus_accuracy_avg = {} ##
         stimulus_latency = {}
     else:
         age_data = get_age_distribution(tests)
-        accuracy_data = get_overall_accuracy_by_age(tests) 
         accuracy_boxplot_data = get_overall_accuracy_boxplot_data(tests)
-        stimulus_accuracy_avg = get_stimulus_accuracy_data()
+        stimulus_accuracy_avg = get_boxplot_data_by_stimulus()
         stimulus_latency = get_stimulus_latency_data()
 
     context = {
         'accuracy_boxplot': json.dumps(accuracy_boxplot_data),
         'labels': json.dumps(list(age_data.keys())),
         'values': json.dumps(list(age_data.values())),
-        'accuracy_labels': json.dumps(list(accuracy_data.keys())),
-        'accuracy_values': json.dumps(list(accuracy_data.values())),
         'stimulus_accuracy': json.dumps(stimulus_accuracy_avg),
         'stimulus_latency': json.dumps(stimulus_latency),
     }

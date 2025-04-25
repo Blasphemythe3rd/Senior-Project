@@ -132,7 +132,6 @@
         const stimulusAccuracyAvg = JSON.parse('{{ stimulus_accuracy|safe }}');
         console.log(stimulusAccuracyAvg)
         const stimulusLatencyAvg = JSON.parse('{{ stimulus_latency|safe }}');
-        console.log(stimulusLatencyAvg)
         const AGE_LABELS = ["30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-99", "100+"];
 
         let stimulusCounter = 1;
@@ -163,10 +162,10 @@
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1,
                     yAxisID: 'y',
-                    type: 'bar'
+                    type: 'boxplot'
                 },
                 {
-                    label: 'Latency (ms)',
+                    label: 'Latency (s)',
                     data: AGE_LABELS.map(age_group => latencyData[age_group] ?? null),
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     borderColor: 'rgba(255, 99, 132, 1)',
@@ -195,10 +194,32 @@
                         position: 'right',
                         title: {
                             display: true,
-                            text: 'Latency (ms)'
+                            text: 'Latency (s)'
                         },
                         grid: {
                             drawOnChartArea: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            // For boxplot
+                            label: function(tooltipItem) {
+                                const data = tooltipItem.raw;
+                                if (data && typeof data === 'object' && 'min' in data) {
+                                    return [
+                                        `Min: ${data.min.toFixed(2)}`,
+                                        `25% Quantile: ${data.q1.toFixed(2)}`,
+                                        `Median: ${data.median.toFixed(2)}`,
+                                        `75% Quantile: ${data.q3.toFixed(2)}`,
+                                        `Max: ${data.max.toFixed(2)}`
+                                    ];
+                                }
+
+                                // For line chart
+                                return `${tooltipItem.dataset.label}: ${tooltipItem.raw.toFixed(2)}`;
+                            }
                         }
                     }
                 }
