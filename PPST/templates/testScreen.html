@@ -330,6 +330,10 @@
           const modalMessage = document.querySelector('#pauseModal .modal-content p')
           modalMessage.textContent = message // Update the modal message dynamically
       
+          // Set the TTS text and speak it
+          stimuliTTS.text = message;
+          window.speechSynthesis.speak(stimuliTTS);
+      
           pauseModal.classList.remove('hidden')
           pauseModal.style.display = 'block'
       
