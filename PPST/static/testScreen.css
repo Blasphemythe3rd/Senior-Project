@@ -28,7 +28,7 @@ body {
 }
 
 .banner-text {
-  margin-left: 5%;
+  margin-left: 0%;
 }
 
 .container {
@@ -67,16 +67,21 @@ body {
   font-weight: bold;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
 }
 
 .submit-button {
     padding: 10px;
+    width: 125px;
+    height: 65px;
     background-color: var(--primary-color);
     border: none;
     border-radius: 4px;
     color: var(--background-color);
     font-size: 16px;
     cursor: pointer;
+    font-weight: bold;
+    font-size: 25px;
 }
 
 .submit-button:hover {
@@ -131,7 +136,6 @@ body {
     .letter-box {
         width: 60px;
         height: 60px;
-        font-size: 30px;
     }
 
     .box {
