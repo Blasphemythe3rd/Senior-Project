@@ -251,16 +251,16 @@ def download_test(request, test_id):
 
         stimulus_num += 1
 
-    # rowIndex = 0
-    # colIndex = 0
-    # for row in cell_range:
-    #     colIndex = 0
-    #     for cell in row:
-    #         cell.value = response_data[rowIndex][colIndex]
-    #         colIndex += 1
-    #     rowIndex += 1
-
     cell_range = ws["A5":"N18"]
+    n_cols = len(cell_range[0])   # e.g. 14 columns from A through N
+    # after building response_data (list of lists):
+    for row in response_data:
+        # if too short, pad with ""; if too long, truncate
+        if len(row) < n_cols:
+            row += [""] * (n_cols - len(row))
+        else:
+            row[:] = row[:n_cols]
+
     for row_idx, row in enumerate(cell_range): # use enumerate instead of messing with indices manually
         for col_idx, cell in enumerate(row):
             cell.value = response_data[row_idx][col_idx]
@@ -273,7 +273,10 @@ def download_test(request, test_id):
     index = 0
     for row in ws2.iter_cols(min_row=2, min_col = 4, max_col = 4, max_row = 15):
         for cell in row:
-            cell.value = sum(latencies[index]) / len(latencies[index])
+            try:
+                cell.value = sum(latencies[index]) / len(latencies[index])
+            except:
+                cell.value = 0
             index += 1
 
     index = 0
