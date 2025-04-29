@@ -224,46 +224,73 @@ def download_test(request, test_id):
         
     responses = Stimuli_Response.objects.filter(test = test)
     response_data = []
-    stimulus_num = 1
+    # debugged with chatgpt
+    for i, response in enumerate(responses, start=1):
+        correct = response.given.correct_order            # e.g. "2348" or "34769"
+        resp_str = response.response or ""               # whatever they actually typed
+        clicks   = response.response_per_click or []      # their per-click latencies
+
+        # break their answer into chars
+        all_chars = list(resp_str)
+        expected_len = len(correct)                      # 4 or 5
+        main_chars = all_chars[:expected_len]            # the “in-place” chars
+        extra_chars = "".join(all_chars[expected_len:])  # anything beyond the expected
+
+        row = []
+        row.append(i)                 # Stimulus #
+        row.append(correct)           # Stimuli
+        row.append(resp_str)          # Full Response
+
+        # fill Char1…Char5
+        for idx in range(5):
+            row.append(main_chars[idx] if idx < len(main_chars) else "")
+
+        # put all overflowed keystrokes into one cell
+        row.append(extra_chars)
+
+        # fill Latency1…Latency5
+        for idx in range(5):
+            row.append(clicks[idx] if idx < len(clicks) else "")
+
+        row.append(response.enum_type)  # Question Type
+
+        response_data.append(row)
+
+    # now make sure we have exactly as many rows as your template (say 14)
+    data_start, data_end = 5, 18
+    n_rows = data_end - data_start + 1
+    n_cols = len(response_data[0])   # should be 15 after adding ExtraChars
+
+    # clamp or pad the number of rows
+    if len(response_data) < n_rows:
+        response_data += [[""]*n_cols] * (n_rows - len(response_data))
+    else:
+        response_data = response_data[:n_rows]
+
+    # write into A5:O18
+    for r in range(n_rows):
+        for c in range(n_cols):
+            ws.cell(row=data_start + r, column=1 + c).value = response_data[r][c]
+
+    # cell_range = ws["A5":"N18"]
+    # n_cols = len(cell_range[0])   # e.g. 14 columns from A through N
+    # # after building response_data (list of lists):
+    # for row in response_data:
+    #     # if too short, pad with ""; if too long, truncate
+    #     if len(row) < n_cols:
+    #         row += [""] * (n_cols - len(row))
+    #     else:
+    #         row[:] = row[:n_cols]
+
+    # for row_idx, row in enumerate(cell_range): # use enumerate instead of messing with indices manually
+    #     for col_idx, cell in enumerate(row):
+    #         cell.value = response_data[row_idx][col_idx]
+
     latencies = []
     stimuliCharList = []
-    for response in responses: # build 2d list of data for all responses
-        response_list = []
-        charResponseList = list(response.response)
-
-        response_list.append(stimulus_num)
-        response_list.append(response.given.correct_order)
-        response_list.append(response.response)
-
-        for char in charResponseList: # one char per cell
-            response_list.append(char)
-        if response.enum_type in ('4digit_practice', '4mixed_practice', '4mixed', '4digit'): # pad row with blank cell
-            response_list.append("")
-        for latency in response.response_per_click:
-            response_list.append(latency)
-        if response.enum_type in ('4digit_practice', '4mixed_practice', '4mixed', '4digit'):
-            response_list.append("")
-        response_list.append(response.enum_type)
-        response_data.append(response_list)
-
+    for response in responses:
         latencies.append(response.response_per_click)
         stimuliCharList.append(list(response.given.correct_order))
-
-        stimulus_num += 1
-
-    # rowIndex = 0
-    # colIndex = 0
-    # for row in cell_range:
-    #     colIndex = 0
-    #     for cell in row:
-    #         cell.value = response_data[rowIndex][colIndex]
-    #         colIndex += 1
-    #     rowIndex += 1
-
-    cell_range = ws["A5":"N18"]
-    for row_idx, row in enumerate(cell_range): # use enumerate instead of messing with indices manually
-        for col_idx, cell in enumerate(row):
-            cell.value = response_data[row_idx][col_idx]
 
     for stimuli in stimuliCharList:
         ws.append(stimuli)
@@ -273,7 +300,10 @@ def download_test(request, test_id):
     index = 0
     for row in ws2.iter_cols(min_row=2, min_col = 4, max_col = 4, max_row = 15):
         for cell in row:
-            cell.value = sum(latencies[index]) / len(latencies[index])
+            try:
+                cell.value = sum(latencies[index]) / len(latencies[index])
+            except:
+                cell.value = 0
             index += 1
 
     index = 0
