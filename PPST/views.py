@@ -226,20 +226,20 @@ def download_test(request, test_id):
     response_data = []
     # debugged with chatgpt
     for i, response in enumerate(responses, start=1):
-        correct = response.given.correct_order            # e.g. "2348" or "34769"
-        resp_str = response.response or ""               # whatever they actually typed
-        clicks   = response.response_per_click or []      # their per-click latencies
+        correct = response.given.correct_order            
+        resp_str = response.response or ""               
+        clicks   = response.response_per_click or []     
 
         # break their answer into chars
         all_chars = list(resp_str)
-        expected_len = len(correct)                      # 4 or 5
+        expected_len = len(correct)                     
         main_chars = all_chars[:expected_len]            # the “in-place” chars
         extra_chars = "".join(all_chars[expected_len:])  # anything beyond the expected
 
         row = []
-        row.append(i)                 # Stimulus #
-        row.append(correct)           # Stimuli
-        row.append(resp_str)          # Full Response
+        row.append(i)           
+        row.append(correct)       
+        row.append(resp_str)
 
         # fill Char1…Char5
         for idx in range(5):
@@ -256,7 +256,6 @@ def download_test(request, test_id):
 
         response_data.append(row)
 
-    # now make sure we have exactly as many rows as your template (say 14)
     data_start, data_end = 5, 18
     n_rows = data_end - data_start + 1
     n_cols = len(response_data[0])   # should be 15 after adding ExtraChars
@@ -271,20 +270,6 @@ def download_test(request, test_id):
     for r in range(n_rows):
         for c in range(n_cols):
             ws.cell(row=data_start + r, column=1 + c).value = response_data[r][c]
-
-    # cell_range = ws["A5":"N18"]
-    # n_cols = len(cell_range[0])   # e.g. 14 columns from A through N
-    # # after building response_data (list of lists):
-    # for row in response_data:
-    #     # if too short, pad with ""; if too long, truncate
-    #     if len(row) < n_cols:
-    #         row += [""] * (n_cols - len(row))
-    #     else:
-    #         row[:] = row[:n_cols]
-
-    # for row_idx, row in enumerate(cell_range): # use enumerate instead of messing with indices manually
-    #     for col_idx, cell in enumerate(row):
-    #         cell.value = response_data[row_idx][col_idx]
 
     latencies = []
     stimuliCharList = []
