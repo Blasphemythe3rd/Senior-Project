@@ -133,7 +133,7 @@ def createTest(request):
             if not recipient_email: #check for email
                 return JsonResponse({"error": "No email provided"}, status=400)
 
-            doctor = Doctor.objects.first() #get the first doctor (hardcoded for now will change when I can)
+            doctor = request.user.doctor  # get the currently logged-in doctor
             if not doctor:
                 return JsonResponse({"error": "No doctor available in the system"}, status=500)
 
