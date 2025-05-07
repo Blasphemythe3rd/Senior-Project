@@ -569,13 +569,13 @@ def add_doctor(request):
 
         doctor_count = 0
         while True:
-            username = f"doctor{doctor_count}"
+            username = first_name.lower() + last_name.lower() + str(doctor_count)
             if not Doctor.objects.filter(username=username).exists():
                 break
             doctor_count += 1
 
         new_doctor = Doctor.objects.create(username=username, first_name=first_name, last_name=last_name, email=email)
-        default_password = "defaultpassword123"
+        default_password = get_random_string(length=8)
         new_doctor.set_password(default_password)
         new_doctor.save()
  
