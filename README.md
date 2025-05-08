@@ -10,6 +10,6 @@
   <li>Perform migrations:  <b>python manage.py makemigrations</b></li> 
   <li>Migrate:  <b>python manage.py migrate</b></li>
   <li>Run:  <b>python manage.py shell < fixture.py</b></li>
-  <li>Run the project (either from the command line using  <b>python manage.py runserver</b>) or from your IDE</li>
+  <li>Run the project (either from the command line using  <b>python manage.py runserver</b> or) from your IDE</li>
   
   </ol>

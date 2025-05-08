@@ -133,7 +133,7 @@ def createTest(request):
             if not recipient_email: #check for email
                 return JsonResponse({"error": "No email provided"}, status=400)
 
-            doctor = Doctor.objects.first() #get the first doctor (hardcoded for now will change when I can)
+            doctor = request.user.doctor  # get the currently logged-in doctor
             if not doctor:
                 return JsonResponse({"error": "No doctor available in the system"}, status=500)
 
@@ -224,46 +224,58 @@ def download_test(request, test_id):
         
     responses = Stimuli_Response.objects.filter(test = test)
     response_data = []
-    stimulus_num = 1
+    # debugged with chatgpt
+    for i, response in enumerate(responses, start=1):
+        correct = response.given.correct_order            
+        resp_str = response.response or ""               
+        clicks   = response.response_per_click or []     
+
+        # break their answer into chars
+        all_chars = list(resp_str)
+        expected_len = len(correct)                     
+        main_chars = all_chars[:expected_len]            # the “in-place” chars
+        extra_chars = "".join(all_chars[expected_len:])  # anything beyond the expected
+
+        row = []
+        row.append(i)           
+        row.append(correct)       
+        row.append(resp_str)
+
+        # fill Char1…Char5
+        for idx in range(5):
+            row.append(main_chars[idx] if idx < len(main_chars) else "")
+
+        # put all overflowed keystrokes into one cell
+        row.append(extra_chars)
+
+        # fill Latency1…Latency5
+        for idx in range(5):
+            row.append(clicks[idx] if idx < len(clicks) else "")
+
+        row.append(response.enum_type)  # Question Type
+
+        response_data.append(row)
+
+    data_start, data_end = 5, 18
+    n_rows = data_end - data_start + 1
+    n_cols = len(response_data[0])   # should be 15 after adding ExtraChars
+
+    # clamp or pad the number of rows
+    if len(response_data) < n_rows:
+        response_data += [[""]*n_cols] * (n_rows - len(response_data))
+    else:
+        response_data = response_data[:n_rows]
+
+    # write into A5:O18
+    for r in range(n_rows):
+        for c in range(n_cols):
+            ws.cell(row=data_start + r, column=1 + c).value = response_data[r][c]
+
     latencies = []
     stimuliCharList = []
-    for response in responses: # build 2d list of data for all responses
-        response_list = []
-        charResponseList = list(response.response)
-
-        response_list.append(stimulus_num)
-        response_list.append(response.given.correct_order)
-        response_list.append(response.response)
-
-        for char in charResponseList: # one char per cell
-            response_list.append(char)
-        if response.enum_type in ('4digit_practice', '4mixed_practice', '4mixed', '4digit'): # pad row with blank cell
-            response_list.append("")
-        for latency in response.response_per_click:
-            response_list.append(latency)
-        if response.enum_type in ('4digit_practice', '4mixed_practice', '4mixed', '4digit'):
-            response_list.append("")
-        response_list.append(response.enum_type)
-        response_data.append(response_list)
-
+    for response in responses:
         latencies.append(response.response_per_click)
         stimuliCharList.append(list(response.given.correct_order))
-
-        stimulus_num += 1
-
-    # rowIndex = 0
-    # colIndex = 0
-    # for row in cell_range:
-    #     colIndex = 0
-    #     for cell in row:
-    #         cell.value = response_data[rowIndex][colIndex]
-    #         colIndex += 1
-    #     rowIndex += 1
-
-    cell_range = ws["A5":"N18"]
-    for row_idx, row in enumerate(cell_range): # use enumerate instead of messing with indices manually
-        for col_idx, cell in enumerate(row):
-            cell.value = response_data[row_idx][col_idx]
 
     for stimuli in stimuliCharList:
         ws.append(stimuli)
@@ -273,7 +285,10 @@ def download_test(request, test_id):
     index = 0
     for row in ws2.iter_cols(min_row=2, min_col = 4, max_col = 4, max_row = 15):
         for cell in row:
-            cell.value = sum(latencies[index]) / len(latencies[index])
+            try:
+                cell.value = sum(latencies[index]) / len(latencies[index])
+            except:
+                cell.value = 0
             index += 1
 
     index = 0
@@ -554,13 +569,13 @@ def add_doctor(request):
 
         doctor_count = 0
         while True:
-            username = f"doctor{doctor_count}"
+            username = first_name.lower() + last_name.lower() + str(doctor_count)
             if not Doctor.objects.filter(username=username).exists():
                 break
             doctor_count += 1
 
         new_doctor = Doctor.objects.create(username=username, first_name=first_name, last_name=last_name, email=email)
-        default_password = "defaultpassword123"
+        default_password = get_random_string(length=8)
         new_doctor.set_password(default_password)
         new_doctor.save()
  
@@ -593,70 +608,25 @@ def add_doctor(request):
 @require_GET
 def admin_average_statistics(request):
     try:
-        # Call the shared logic for average statistics
-        tests = Test.objects.values_list('patient_age', flat=True)
-
+        tests = list(Test.objects.all())
+        
         if not tests:
-            age_data = { "30-39": 0, "40-49": 0, "50-59": 0, "60-69": 0,
-                         "70-79": 0, "80-89": 0, "90-99": 0, "100+": 0 }
-            accuracy_data = {key: 0 for key in age_data.keys()}
-            stimulus_accuracy_avg = {}
+            age_data = {label: 0 for label in AGE_LABELS}
+            accuracy_boxplot_data = {}
+            stimulus_accuracy_avg = {} ##
+            stimulus_latency = {}
         else:
-            df = pd.DataFrame({'patient_age': tests})
-            bins = [30, 39, 49, 59, 69, 79, 89, 99, float('inf')]
-            labels = ["30-39", "40-49", "50-59", "60-69", 
-                      "70-79", "80-89", "90-99", "100+"]
-            df['age_group'] = pd.cut(df['patient_age'], bins=bins, labels=labels, right=True)
+            age_data = get_age_distribution(tests)
+            accuracy_boxplot_data = get_overall_accuracy_boxplot_data(tests)
+            stimulus_accuracy_avg = get_boxplot_data_by_stimulus()
+            stimulus_latency = get_stimulus_latency_data()
 
-            age_data = df['age_group'].value_counts().sort_index().to_dict()
-
-            accuracy_data = {key: [] for key in labels}  
-
-            stimulus_accuracy = {stimulus.id: {label: [] for label in labels} 
-                                for stimulus in Given_Stimuli.objects.all()}
-
-            responses = Stimuli_Response.objects.select_related('given')
-
-            for response in responses:
-                correct = response.given.correct_order.strip()
-                user_response = response.response.strip()
-                stimulus_id = response.given.id
-
-                match_count = sum(1 for c1, c2 in zip(correct, user_response) if c1 == c2)
-                accuracy_percentage = (match_count / len(correct)) * 100
-
-                age = response.test.patient_age
-                age_group = pd.cut([age], bins=bins, labels=labels, right=True)[0]
-
-                if stimulus_id in stimulus_accuracy and age_group in stimulus_accuracy[stimulus_id]:
-                    stimulus_accuracy[stimulus_id][age_group].append(accuracy_percentage)
-
-                if age_group in accuracy_data:
-                    accuracy_data[age_group].append(accuracy_percentage)
-
-            stimulus_accuracy_avg = {
-                stim_id: {
-                    age_group: (
-                        sum(values) / len(values) if values else 0
-                    )
-                    for age_group, values in age_dict.items()
-                }
-                for stim_id, age_dict in stimulus_accuracy.items()
-            }
-
-            for key in accuracy_data.keys():
-                if accuracy_data[key]:
-                    accuracy_data[key] = sum(accuracy_data[key]) / len(accuracy_data[key])
-                else:
-                    accuracy_data[key] = 0
-
-        # Return the data as JSON
         return JsonResponse({
+            'accuracy_boxplot': accuracy_boxplot_data,
             'labels': list(age_data.keys()),
             'values': list(age_data.values()),
-            'accuracy_labels': list(accuracy_data.keys()),
-            'accuracy_values': list(accuracy_data.values()),
-            'stimulus_accuracy': stimulus_accuracy_avg
+            'stimulus_accuracy': stimulus_accuracy_avg,
+            'stimulus_latency': stimulus_latency,
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
